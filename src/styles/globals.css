@@ -1,95 +1,543 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 24.6 95% 53.1%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 24.6 95% 53.1%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+/* Dark mode using v4 native approach */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* CSS variables outside of layers (v4.1 best practice) */
+:root {
+  /* Brand Foundation - Warm Sunset Colors */
+  --brand-coral: hsl(18, 93%, 70%); /* #FA906E */
+  --brand-amber: hsl(42, 89%, 67%); /* #F5BC5E */
+  --brand-soft-coral: hsl(18, 85%, 94%); /* #FDE6DE */
+
+  /* Core Design System */ /* Soft warm off-white */ /* Dark warm teal-gray */
+  --card: oklch(1 0 0); /* Pure white */
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+
+  /* Primary uses brand coral */
+  --primary: oklch(0.21 0.006 285.885);
+  --primary-foreground: oklch(0.985 0 0);
+
+  /* Secondary uses warm beige */
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+
+  /* Muted uses warm beige */
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+
+  /* Accent uses brand amber */
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+
+  /* Functional colors */
+  --destructive: oklch(0.577 0.245 27.325); /* Soft coral red */
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --success: hsl(98, 47%, 69%); /* Fresh green */
+  --warning: hsl(42, 88%, 67%); /* Deep amber */
+  --info: hsl(205, 51%, 66%); /* Soft blue */
+
+  /* UI Elements */
+  --border: oklch(0.92 0.004 286.32); /* Warm light borders */
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067); /* Focus ring uses coral */
+
+  /* Chart colors (warm progression) */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08); /* Light coral variant */
+
+  /* Sidebar (warm neutral) */
+  --sidebar-background: hsl(18, 33%, 97%);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
+  --sidebar: oklch(0.985 0 0);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+}
+
+.dark {
+  /* Dark theme with warm undertones */
+  --background: oklch(0.141 0.005 285.823); /* Deep warm plum */
+  --foreground: oklch(0.985 0 0); /* Light lavender */
+  --card: oklch(0.21 0.006 285.885); /* Dark plum cards */
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+
+  /* Brand colors remain consistent */
+  --primary: oklch(0.92 0.004 286.32);
+  --primary-foreground: oklch(0.21 0.006 285.885);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: hsl(0, 0%, 98%);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+
+  /* Chart colors stay consistent */
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  /* Sidebar dark theme */
+  --sidebar-background: hsl(330, 14%, 10%);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --sidebar: oklch(0.21 0.006 285.885);
+}
+
+/* Theme configuration using v4 CSS-first approach */
+@theme inline {
+  /* Custom breakpoints - v4 syntax */
+  --breakpoint-xs: 328px;
+  --breakpoint-laptop: 900px;
+
+  /* Color mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar colors */
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Border radius - modern, friendly */
+  --radius-sm: 0.75rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 2.5rem;
+  --radius-5xl: 3rem;
+  --radius-6xl: 3.5rem;
+  --radius-7xl: 4rem;
+  --radius-8xl: 4.5rem;
+  --radius-9xl: 5rem;
+  --radius-10xl: 5.5rem;
+  --radius-11xl: 6rem;
+  --radius-12xl: 6.5rem;
+  --radius-13xl: 7rem;
+  --radius-14xl: 7.5rem;
+  --radius-15xl: 8rem;
+  --color-sidebar: var(--sidebar);
+}
+
+/* Custom keyframes for v4 */
+@theme {
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
 
-  .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
-    --card: 20 14.3% 4.1%;
-    --card-foreground: 60 9.1% 97.8%;
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 60 9.1% 97.8%;
-    --primary: 20.5 90.2% 48.2%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 60 9.1% 97.8%;
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 9.1% 97.8%;
-    --destructive: 0 72.2% 50.6%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --radius: 0.6rem;
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 20.5 90.2% 48.2%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
+/* Base layer styles */
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
 
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Modern scrolling and focus */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
+  }
+
+  /* Next.js 15 optimization: Prevent FOUC */
+  [data-theme] {
+    color-scheme: light dark;
+  }
+
+  /* Mobile safe area support for bottom navigation */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-pl {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .safe-area-pr {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Mobile native transitions */
+  .native-tap {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Tone down excessive hover effects - mobile-friendly */
+  .hover-toned:hover {
+    transform: scale(1.002) !important;
+    transition: transform 0.08s ease-in-out;
+  }
+
+  /* Disable hover effects on touch devices */
+  @media (hover: none) {
+    .hover-toned:hover {
+      transform: none !important;
+    }
+  }
+
+  /* Card hover effects - more subtle and mobile-aware */
+  .card-hover:hover {
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.12s ease;
+  }
+
+  /* Disable card hover on touch devices */
+  @media (hover: none) {
+    .card-hover:hover {
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+  }
+
+  /* Subtle animation utilities for mobile */
+  .animate-fade-in-mobile {
+    animation: fadeInMobile 0.2s ease-out;
+  }
+
+  .animate-slide-up-mobile {
+    animation: slideUpMobile 0.18s ease-out;
+  }
+
+  /* Mobile-optimized keyframes */
+  @keyframes fadeInMobile {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUpMobile {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-::selection {
-  background-color: rgba(92, 92, 92, 0.471);
-  color: #fff;
+/* Persona-specific CSS custom properties */
+.persona-room-seeker {
+  --persona-primary: hsl(217, 91%, 60%);
+  --persona-secondary: hsl(188, 95%, 42%);
+  --persona-light: hsl(217, 91%, 95%);
 }
 
-::-webkit-scrollbar {
-  width: 0.25rem;
+.persona-room-owner {
+  --persona-primary: hsl(142, 76%, 36%);
+  --persona-secondary: hsl(142, 69%, 58%);
+  --persona-light: hsl(142, 76%, 95%);
 }
 
-::-webkit-scrollbar-thumb {
-  background-color: #404040;
-  border-radius: 0.25rem;
+.persona-property-manager {
+  --persona-primary: hsl(21, 90%, 48%);
+  --persona-secondary: hsl(42, 96%, 50%);
+  --persona-light: hsl(21, 90%, 95%);
 }
 
-::-webkit-scrollbar-track {
-  background-color: #101010;
+.persona-buddy-up {
+  --persona-primary: hsl(262, 83%, 58%);
+  --persona-secondary: hsl(258, 90%, 66%);
+  --persona-light: hsl(262, 83%, 95%);
 }
 
-img,
-image {
-  user-select: none;
-  pointer-events: none;
+.persona-student {
+  --persona-primary: hsl(188, 95%, 42%);
+  --persona-secondary: hsl(142, 69%, 58%);
+  --persona-light: hsl(188, 95%, 95%);
+}
+
+.persona-expat {
+  --persona-primary: hsl(217, 91%, 60%);
+  --persona-secondary: hsl(262, 83%, 58%);
+  --persona-light: hsl(217, 91%, 95%);
+}
+
+.persona-neutral {
+  /* Uses brand warm sunset colors */
+  --persona-primary: var(--brand-coral);
+  --persona-secondary: var(--brand-amber);
+  --persona-light: var(--brand-soft-coral);
+}
+
+/* ============================================================================
+   STANDARD LAYOUT UTILITIES - Mobile-First Optimization
+   ============================================================================ */
+
+@layer utilities {
+  /* Mobile-optimized page container - increased max-width for dashboard layouts */
+  .page-container {
+    @apply mx-auto w-full px-2.5 sm:px-4 md:px-6 lg:px-8 xl:px-10;
+    max-width: 1400px;
+  }
+
+  /* Full-width container for mobile-optimized layouts */
+  .page-container-full {
+    @apply w-full px-2.5 sm:px-4 md:px-6 lg:px-8;
+  }
+
+  /* Narrow container for content-focused pages */
+  .page-container-narrow {
+    @apply mx-auto w-full px-2.5 sm:px-4 md:px-6;
+    max-width: 800px;
+  }
+
+  /* Mobile-optimized section spacing - reduced for better density */
+  .section-py {
+    @apply py-4 sm:py-6 md:py-8 lg:py-10;
+  }
+
+  .section-py-lg {
+    @apply py-6 sm:py-8 md:py-10 lg:py-14;
+  }
+
+  .section-py-sm {
+    @apply py-3 sm:py-4 md:py-5;
+  }
+
+  /* Simplified responsive grid patterns - mobile-first with tighter spacing */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4;
+  }
+
+  /* Mobile-first typography scale with better mobile sizing */
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
+  }
+
+  .text-responsive-md {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+
+  /* Mobile-optimized component spacing - reduced for better density */
+  .component-spacing {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
+  }
+
+  /* Mobile card padding optimization - more compact */
+  .card-padding-mobile {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  .card-padding-compact {
+    @apply p-2 sm:p-3 md:p-4;
+  }
+
+  /* Mobile-friendly button sizing */
+  .btn-mobile-optimized {
+    @apply px-4 py-3 text-sm sm:px-6 sm:py-3 sm:text-base;
+    min-height: 44px; /* iOS minimum touch target */
+  }
+
+  /* Navbar spacing utilities */
+  .pt-30 {
+    padding-top: 120px; /* 3x navbar height for proper spacing */
+  }
+
+  /* Responsive navbar spacing for mobile */
+  @media (max-width: 640px) {
+    .pt-30 {
+      padding-top: 100px; /* Slightly less on mobile */
+    }
+  }
+
+  /* Glassmorphism patterns with warm undertones */
+  .glass-warm-light {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 244, 242, 0.9) 100%
+    );
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-warm-dark {
+    background: linear-gradient(
+      135deg,
+      rgba(52, 45, 52, 0.9) 0%,
+      rgba(74, 58, 66, 0.9) 100%
+    );
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+
+  /* Persona gradient overlays */
+  .persona-gradient-overlay {
+    background: linear-gradient(
+      135deg,
+      var(--persona-primary) 0%,
+      var(--persona-secondary) 100%
+    );
+    opacity: 0.1;
+  }
+
+  /* Enhanced focus styles with warm undertones */
+  .focus-visible {
+    outline: 2px solid var(--brand-coral);
+    outline-offset: 2px;
+    border-radius: 6px;
+    box-shadow: 0 0 0 4px rgba(250, 144, 110, 0.2);
+  }
+
+  /* Skip navigation links */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--brand-coral);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: top 0.3s ease;
+    z-index: 1000;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+  }
+
+  /* Floating navigation compensation */
+  .mobile-nav-spacing {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 16px));
+  }
+
+  /* Hero sections that should start from top */
+  .hero-full-height {
+    min-height: 100vh;
+    padding-top: 0;
+  }
+
+  /* Navbar spacing handled by unified design system - see navbar.spacing */
+
+  .progress-bar-spacing {
+    padding-top: calc(120px + env(safe-area-inset-top, 16px));
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --primary: hsl(18, 85%, 55%); /* Darker coral for better contrast */
+      --foreground: hsl(180, 20%, 10%); /* Much darker text */
+      --border: hsl(18, 40%, 70%); /* Stronger borders */
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .card-hover,
+    .btn-mobile-optimized,
+    .animate-fade-in-mobile,
+    .animate-slide-up-mobile {
+      transition: none;
+      animation: none;
+    }
+  }
 }

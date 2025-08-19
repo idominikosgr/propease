@@ -8,12 +8,12 @@ import { METRICS } from "./metrics";
 import { FAQS } from "./faq";
 
 export {
-    NAV_LINKS,
-    HOW_IT_WORKS,
-    PERKS,
-    FEATURES,
-    TESTIMONIALS,
-    PRICING_PLANS,
-    METRICS,
-    FAQS
- };
+  NAV_LINKS,
+  HOW_IT_WORKS,
+  PERKS,
+  FEATURES,
+  TESTIMONIALS,
+  PRICING_PLANS,
+  METRICS,
+  FAQS,
+};

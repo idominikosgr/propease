@@ -1,14 +1,18 @@
 export const NAV_LINKS = [
-    {
-        name: "Features",
-        link: "#",
-    },
-    {
-        name: "Pricing",
-        link: "#",
-    },
-    {
-        name: "Contact",
-        link: "#",
-    },
+  {
+    name: "Properties",
+    link: "/properties",
+  },
+  {
+    name: "Golden Visa",
+    link: "/golden-visa",
+  },
+  {
+    name: "Features",
+    link: "#features",
+  },
+  {
+    name: "Contact",
+    link: "#contact",
+  },
 ];

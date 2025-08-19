@@ -1,0 +1,201 @@
+// iListApiService.js
+// Service for interacting with the iList API
+
+// API Base URL
+const API_BASE_URL = 'https://ilist.e-agents.gr';
+
+// API Authentication Token
+// In production, this should be stored in environment variables
+// or a secure configuration, not hard-coded
+let AUTH_TOKEN = '';
+
+/**
+ * Set the authentication token to use for API requests
+ * @param {string} token - The API authentication token
+ */
+export const setAuthToken = (token) => {
+  AUTH_TOKEN = token;
+};
+
+/**
+ * Create headers for API requests
+ * @param {Object} additionalHeaders - Additional headers to include
+ * @returns {Object} - Headers object for fetch requests
+ */
+const createHeaders = (additionalHeaders = {}) => {
+  return {
+    'Content-Type': 'application/json',
+    'authorization': AUTH_TOKEN,
+    ...additionalHeaders
+  };
+};
+
+/**
+ * Test API connection with the provided token
+ * @returns {Promise<boolean>} - True if connection is successful
+ */
+export const testApiConnection = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/properties`, {
+      method: 'GET',
+      headers: createHeaders()
+    });
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('Error testing API connection:', error);
+    return false;
+  }
+};
+
+/**
+ * Fetch properties from the iList API
+ * @param {Object} params - Search parameters
+ * @param {boolean} detailed - Whether to fetch detailed property information
+ * @returns {Promise<Object>} - API response
+ */
+export const fetchProperties = async (params = {}, detailed = false) => {
+  try {
+    const defaultParams = {
+      StatusID: "1", // 1-active, 2-deleted
+      isSync: true,
+      IncludeDeletedFromCrm: false
+    };
+
+    const requestParams = {
+      ...defaultParams,
+      ...params
+    };
+
+    const response = await fetch(`${API_BASE_URL}/api/properties`, {
+      method: 'POST',
+      headers: createHeaders({
+        'Details': detailed ? 'Full' : 'Basic'
+      }),
+      body: JSON.stringify(requestParams)
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching properties:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch a single property by ID
+ * @param {number} propertyId - The property ID to fetch
+ * @returns {Promise<Object>} - Property data
+ */
+export const fetchPropertyById = async (propertyId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/properties/${propertyId}`, {
+      method: 'GET',
+      headers: createHeaders({
+        'Details': 'Full'
+      })
+    });
+
+    const data = await response.json();
+    return data.success ? data.data : null;
+  } catch (error) {
+    console.error(`Error fetching property ${propertyId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Transform iList API property data to the internal format used by the interface
+ * @param {Array} apiProperties - Properties from the iList API
+ * @returns {Array} - Transformed properties array
+ */
+export const transformApiProperties = (apiProperties) => {
+  if (!Array.isArray(apiProperties)) {
+    return [];
+  }
+
+  return apiProperties.map(prop => {
+    // Extract title, area and characteristics 
+    const title = prop.Characteristics?.find(c => c.Title === 'Τίτλος' && c.Language_Id === 4)?.Value || '';
+    const adText = prop.Characteristics?.find(c => c.Title === 'Αγγελία' && c.Language_Id === 4)?.Value || '';
+    const description = prop.Characteristics?.find(c => c.Title === 'Επιπλέον κείμενο (ΧΕ)' && c.Language_Id === 4)?.Value || '';
+    
+    // Extract property type and area from title
+    let propertyType = '';
+    let area = '';
+    
+    const titleParts = title.split(' Προς ');
+    if (titleParts.length > 0) {
+      const firstPart = titleParts[0];
+      const typeParts = firstPart.split(' - ');
+      if (typeParts.length >= 2) {
+        propertyType = typeParts[1];
+      }
+    }
+    
+    if (titleParts.length > 1) {
+      const secondPart = titleParts[1];
+      const areaParts = secondPart.split(', ');
+      if (areaParts.length >= 2) {
+        area = areaParts[1];
+      }
+    }
+    
+    // Parse URL from description
+    const urlMatch = description.match(/(https?:\/\/[^\s]+)/);
+    const listingUrl = urlMatch ? urlMatch[0] : '';
+    
+    // Create a unique ID if one doesn't exist
+    const id = prop.Id || `ilist-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // Convert API data to our internal format
+    return {
+      ID: id,
+      Τύπος: propertyType || prop.SubCategory_ID?.toString() || '',
+      Περιοχή: area || '',
+      'Γειτονιά/Υποπεριοχή': prop.SubArea_ID?.toString() || '',
+      'Εμβαδόν (τ.μ.)': prop.SqrMeters || 0,
+      Τιμή: prop.Price || 0,
+      'Δωμάτια-Υ/Δ': prop.Rooms?.toString() || '',
+      Καταχώρηση: prop.SendDate || new Date().toISOString(),
+      Κατάσταση: 'Ενεργό',
+      Πελάτης: `${prop.Partner?.Firstname || ''} ${prop.Partner?.Lastname || ''}`,
+      'Email πελάτη': prop.Partner?.Email || '',
+      'Τηλ. πελάτη': prop.Partner?.Phone || '',
+      Συνεργάτης: '',
+      Σχόλια: description,
+      listingUrl: listingUrl,
+      favorite: false,
+      status: 'Open',
+      ενδιαφερόμενος: '',
+      commentHistory: [],
+      // Keep the original API data for reference
+      _originalApiData: prop
+    };
+  });
+};
+
+/**
+ * Fetch lookup data from the API (e.g., property types, areas, etc.)
+ * @param {string} lookupType - The type of lookup data to fetch
+ * @param {number} languageId - The language ID (default: 4 for Greek)
+ * @returns {Promise<Array>} - Lookup data
+ */
+export const fetchLookupData = async (lookupType, languageId = 4) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/lookups/${lookupType}`, {
+      method: 'GET',
+      headers: createHeaders({
+        'Language': languageId.toString()
+      })
+    });
+
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error(`Error fetching ${lookupType} lookup data:`, error);
+    throw error;
+  }
+};

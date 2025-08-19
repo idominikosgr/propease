@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - "@clerk/shared"
+  - "@tailwindcss/oxide"
+  - oxc-resolver
+  - sharp
+  - unrs-resolver

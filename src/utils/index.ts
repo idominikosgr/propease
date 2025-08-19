@@ -1,5 +1,3 @@
 import { generateMetadata } from "./metadata";
 
-export {
-    generateMetadata,
-};
+export { generateMetadata };

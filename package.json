@@ -1,76 +1,450 @@
 {
-  "name": "propease",
-  "version": "0.1.0",
+  "name": "realtyiq",
+  "version": "0.1.1",
   "private": true,
+  "description": "RealtyIQ",
   "scripts": {
     "dev": "next dev",
+    "dev:turbopack": "next dev --turbopack",
+    "dev:bun": "bun --bun run dev",
     "build": "next build",
+    "build:turbopack": "next build --turbopack",
+    "build:rsbuild": "rsbuild build",
+    "build:check": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "exec biome lint src/",
+    "lint:fix": "exec biome lint --write src/",
+    "lint:fix-unsafe": "exec biome lint --unsafe --write src/",
+    "format": "exec biome format --write src/",
+    "format:check": "exec biome format src/",
+    "check": "exec biome check src/",
+    "check:fix": "exec biome check --write src/",
+    "typecheck": "tsc --noEmit",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
+    "validate:full": "pnpm run validate && pnpm run test:ci && pnpm run build:check",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:browser": "vitest --config vitest.browser.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:ci": "vitest run --coverage",
+    "test:watch": "vitest",
+    "analyze": "ANALYZE=true pnpm build",
+    "analyze:server": "BUNDLE_ANALYZE=server pnpm build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser pnpm build",
+    "security:audit": "pnpm audit --audit-level high",
+    "security:check": "pnpm audit --audit-level moderate",
+    "deps:check": "depcheck",
+    "deps:unused": "depcheck --ignores='@types/*,eslint-*'",
+    "precommit": "lint-staged",
+    "clean": "rm -rf .next .turbo node_modules/.cache",
+    "clean:all": "rm -rf .next .turbo node_modules",
+    "reinstall": "pnpm clean:all && pnpm install",
+    "commit": "git add . && git-cz",
+    "perf:lighthouse": "lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-report.json",
+    "perf:vitals": "pnpm dlx web-vitals-reporter",
+    "runtime:bun": "bun install && bun run dev",
+    "db:setup": "chmod +x scripts/setup-database.sh && ./scripts/setup-database.sh",
+    "db:lint": "supabase db lint",
+    "db:status": "supabase status",
+    "db:validate": "supabase db lint && supabase status",
+    "generate:types": "chmod +x scripts/generate-types.sh && ./scripts/generate-types.sh",
+    "types:local": "supabase gen types typescript --local > src/types/database.types.ts",
+    "types:remote": "supabase gen types typescript --project-id djaxmnjxeccinajmrzvt > src/types/database.types.ts",
+    "types:verify": "chmod +x scripts/verify-types.sh && ./scripts/verify-types.sh",
+    "types:check": "pnpm run types:verify && pnpm run typecheck",
+    "create-admin-users": "node scripts/create-admin-users.js",
+    "test:supabase": "node scripts/test-supabase-connection.js",
+    "setup:env": "node ./scripts/setup-env.js",
+    "db:monitor": "node scripts/monitor-optimization.js",
+    "db:monitor:watch": "watch -n 300 'node scripts/monitor-optimization.js'",
+    "db:optimize:validate": "node scripts/monitor-optimization.js && echo '✅ Database optimization validation complete'",
+    "perf:audit": "pnpm run perf:lighthouse && pnpm run perf:bundle",
+    "perf:monitor": "pnpm dlx clinic doctor -- node server.js",
+    "upgrade:next": "npx @next/codemod@canary upgrade latest",
+    "build:docker": "docker build -t myroomie-platform .",
+    "start:docker": "docker run -p 3000:3000 myroomie-platform",
+    "auth:audit": "node scripts/auth-audit.js",
+    "auth:check": "pnpm auth:audit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.9.15",
-    "@hookform/resolvers": "^3.10.0",
-    "@number-flow/react": "^0.5.5",
-    "@radix-ui/react-accordion": "^1.2.2",
-    "@radix-ui/react-alert-dialog": "^1.1.4",
-    "@radix-ui/react-aspect-ratio": "^1.1.1",
-    "@radix-ui/react-avatar": "^1.1.2",
-    "@radix-ui/react-checkbox": "^1.1.3",
-    "@radix-ui/react-collapsible": "^1.1.2",
-    "@radix-ui/react-context-menu": "^2.2.4",
-    "@radix-ui/react-dialog": "^1.1.4",
-    "@radix-ui/react-dropdown-menu": "^2.1.4",
-    "@radix-ui/react-hover-card": "^1.1.4",
-    "@radix-ui/react-label": "^2.1.1",
-    "@radix-ui/react-menubar": "^1.1.4",
-    "@radix-ui/react-navigation-menu": "^1.2.3",
-    "@radix-ui/react-popover": "^1.1.4",
-    "@radix-ui/react-progress": "^1.1.1",
-    "@radix-ui/react-radio-group": "^1.2.2",
-    "@radix-ui/react-scroll-area": "^1.2.2",
-    "@radix-ui/react-select": "^2.1.4",
-    "@radix-ui/react-separator": "^1.1.1",
-    "@radix-ui/react-slider": "^1.2.2",
-    "@radix-ui/react-slot": "^1.1.1",
-    "@radix-ui/react-switch": "^1.1.2",
-    "@radix-ui/react-tabs": "^1.1.2",
-    "@radix-ui/react-toast": "^1.2.4",
-    "@radix-ui/react-toggle": "^1.1.1",
-    "@radix-ui/react-toggle-group": "^1.1.1",
-    "@radix-ui/react-tooltip": "^1.1.6",
+    "@ai-sdk/anthropic": "2.0.4",
+    "@ai-sdk/azure": "2.0.15",
+    "@ai-sdk/provider-utils": "3.0.3",
+    "@ai-sdk/react": "2.0.15",
+    "@ai-sdk/vercel": "1.0.8",
+    "@auth/supabase-adapter": "^1.10.0",
+    "@clerk/nextjs": "^6.31.2",
+    "@conform-to/react": "^1.8.2",
+    "@conform-to/zod": "^1.8.2",
+    "@hookform/resolvers": "^5.2.1",
+    "@lexical/code": "^0.34.0",
+    "@lexical/hashtag": "^0.34.0",
+    "@lexical/link": "^0.34.0",
+    "@lexical/list": "^0.34.0",
+    "@lexical/markdown": "^0.34.0",
+    "@lexical/plain-text": "^0.34.0",
+    "@lexical/react": "^0.34.0",
+    "@lexical/rich-text": "^0.34.0",
+    "@lexical/selection": "^0.34.0",
+    "@lexical/table": "^0.34.0",
+    "@lexical/utils": "^0.34.0",
+    "@next/env": "canary",
+    "@next/third-parties": "canary",
+    "@number-flow/react": "^0.5.10",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-aspect-ratio": "^1.1.7",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.3.3",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-context-menu": "^2.2.16",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-icons": "^1.3.2",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-menubar": "^1.1.16",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-radio-group": "^1.3.8",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slider": "^1.3.6",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/react-toggle": "^1.1.10",
+    "@radix-ui/react-toggle-group": "^1.1.11",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@stripe/react-stripe-js": "^3.9.1",
+    "@stripe/stripe-js": "^7.8.0",
+    "@supabase/auth-js": "2.71.1",
+    "@supabase/postgrest-js": "^1.21.2",
+    "@supabase/realtime-js": "^2.15.2",
+    "@supabase/ssr": "0.7.0-rc.2",
+    "@supabase/storage-js": "^2.11.0",
+    "@supabase/supabase-js": "^2.55.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/react-query": "^5.85.3",
+    "@tanstack/react-query-devtools": "^5.85.3",
+    "@tremor/react": "^3.18.7",
+    "@types/js-cookie": "^3.0.6",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@typescript-eslint/parser": "^8.40.0",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/og": "^0.8.5",
+    "@vercel/speed-insights": "^1.2.0",
+    "ai": "5.0.15",
+    "bcrypt-ts": "^7.1.0",
     "class-variance-authority": "^0.7.1",
+    "clerk": "^0.8.3",
     "clsx": "^2.1.1",
-    "cmdk": "1.0.0",
+    "cmdk": "^1.1.1",
+    "dataloader": "^2.2.3",
     "date-fns": "^4.1.0",
-    "embla-carousel-react": "^8.5.2",
-    "framer-motion": "^12.0.5",
+    "embla-carousel-react": "^8.6.0",
+    "exceljs": "^4.4.0",
+    "framer-motion": "^12.23.12",
     "input-otp": "^1.4.2",
-    "lucide-react": "^0.473.0",
-    "next": "15.1.5",
-    "next-themes": "^0.4.4",
-    "react": "^19.0.0",
-    "react-day-picker": "8.10.1",
-    "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2",
-    "react-parallax-tilt": "^1.7.272",
-    "react-resizable-panels": "^2.1.7",
-    "recharts": "^2.15.0",
-    "sonner": "^1.7.2",
-    "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
+    "inquirer": "^12.9.3",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
+    "leaflet": "^1.9.4",
+    "lexical": "^0.34.0",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.540.0",
+    "nanoid": "^5.1.5",
+    "next": "canary",
+    "next-intl": "^4.3.4",
+    "next-safe-action": "^8.0.10",
+    "next-themes": "1.0.0-beta.0",
+    "papaparse": "^5.5.3",
+    "postgres": "^3.4.7",
+    "react": "19.1.1",
+    "react-day-picker": "^9.9.0",
+    "react-dom": "19.1.1",
+    "react-dropzone": "^14.3.8",
+    "react-hook-form": "^7.62.0",
+    "react-joyride": "^2.9.3",
+    "react-leaflet": "^5.0.0",
+    "react-resizable-panels": "^3.0.4",
+    "recharts": "^3.1.2",
+    "resumable-stream": "^2.2.3",
+    "schema-dts": "^1.1.5",
+    "shadcn": "^2.10.0",
+    "sonner": "^2.0.7",
+    "stripe": "^18.4.0",
+    "tailwind-merge": "^3.3.1",
+    "tesseract.js": "^6.0.1",
+    "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.24.1"
+    "web-push": "^3.6.7",
+    "xlsx": "^0.18.5",
+    "zod": "^4.0.17",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.1.5",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "@biomejs/biome": "^2.2.0",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/eslintrc": "^3.3.1",
+    "@faker-js/faker": "^9.9.0",
+    "@next/bundle-analyzer": "canary",
+    "@playwright/test": "^1.54.2",
+    "@rsbuild/core": "^1.4.15",
+    "@rsbuild/plugin-react": "^1.3.5",
+    "@rspack/core": "^1.4.11",
+    "@swc/core": "^1.13.3",
+    "@tailwindcss/postcss": "^4.1.12",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/leaflet": "^1.9.20",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^24.3.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@types/uuid": "^10.0.0",
+    "@types/web-push": "^3.6.4",
+    "@vitejs/plugin-react": "^5.0.1",
+    "@vitest/browser": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "autoprefixer": "^10.4.21",
+    "bun": "^1.2.20",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "depcheck": "^1.4.7",
+    "dotenv": "^17.2.1",
+    "jsdom": "^26.1.0",
+    "knip": "^5.62.0",
+    "lighthouse": "^12.8.1",
+    "lint-staged": "^16.1.5",
+    "node-fetch": "^3.3.2",
+    "null-loader": "^4.0.1",
+    "playwright": "^1.54.2",
+    "postcss": "^8.5.6",
+    "postcss-preset-env": "^10.2.4",
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.1.12",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.4",
+    "tw-animate-css": "^1.3.7",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "web-vitals": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=22.x",
+    "pnpm": ">=10.14.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "not android 4.4.3"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc}": [
+      "@biomejs/biome check --fix",
+      "@biomejs/biome format --write"
+    ],
+    "*.{css,md,yml,yaml}": [
+      "@biomejs/biome format --write"
+    ],
+    "package.json": [
+      "@biomejs/biome format --write"
+    ],
+    "src/types/database.types.ts": [
+      "bash -c 'pnpm run types:verify || true'"
+    ],
+    "supabase/migrations/*.sql": [
+      "bash -c 'echo \"🗄️ Validating migration file: $0\" && supabase db lint || true'"
+    ],
+    "*.{ts,tsx}": [
+      "bash -c 'pnpm run typecheck'"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "type-enum": [
+        2,
+        "always",
+        [
+          "feat",
+          "fix",
+          "docs",
+          "style",
+          "refactor",
+          "test",
+          "chore",
+          "perf",
+          "ci",
+          "build",
+          "db",
+          "api",
+          "ui",
+          "auth",
+          "config"
+        ]
+      ],
+      "subject-max-length": [
+        2,
+        "always",
+        72
+      ],
+      "body-max-line-length": [
+        2,
+        "always",
+        130
+      ]
+    }
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^server-only$": "<rootDir>/node_modules/server-only/index.js"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(@vercel/analytics|@vercel/speed-insights)/)"
+  ],
+  "testPathIgnorePatterns": [
+    "<rootDir>/.next/",
+    "<rootDir>/node_modules/"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/*.stories.{js,jsx,ts,tsx}",
+    "!src/**/*.test.{js,jsx,ts,tsx}",
+    "!src/**/index.{js,jsx,ts,tsx}"
+  ],
+  "packageManager": "pnpm@10.14.0",
+  "turbo": {
+    "baseBranch": "origin/main",
+    "pipeline": {
+      "build": {
+        "dependsOn": [
+          "^build",
+          "typecheck",
+          "lint:check"
+        ],
+        "outputs": [
+          ".next/**",
+          "!.next/cache/**"
+        ]
+      },
+      "build:turbopack": {
+        "dependsOn": [
+          "^build:turbopack",
+          "typecheck",
+          "lint:check"
+        ],
+        "outputs": [
+          ".next/**",
+          "!.next/cache/**"
+        ]
+      },
+      "build:check": {
+        "dependsOn": [
+          "^build:check"
+        ],
+        "outputs": [
+          ".next/**",
+          "!.next/cache/**"
+        ]
+      },
+      "lint": {
+        "dependsOn": [
+          "^lint"
+        ]
+      },
+      "lint:check": {
+        "dependsOn": [
+          "^lint:check"
+        ]
+      },
+      "typecheck": {
+        "dependsOn": [
+          "^typecheck"
+        ]
+      },
+      "test": {
+        "dependsOn": [
+          "^test"
+        ]
+      },
+      "test:ci": {
+        "dependsOn": [
+          "^test:ci"
+        ]
+      },
+      "dev": {
+        "cache": false,
+        "persistent": true
+      },
+      "dev:turbopack": {
+        "cache": false,
+        "persistent": true
+      },
+      "validate": {
+        "dependsOn": [
+          "typecheck",
+          "lint:check",
+          "format:check"
+        ]
+      },
+      "validate:full": {
+        "dependsOn": [
+          "validate",
+          "test:ci",
+          "build:check"
+        ]
+      },
+      "perf:lighthouse": {
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "$@types/react",
+      "@types/react-dom": "$@types/react-dom"
+    },
+    "patchedDependencies": {},
+    "allowedDeprecatedVersions": {
+      "inflight": "*",
+      "glob": "*"
+    },
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@tailwindcss/oxide",
+      "@vercel/speed-insights",
+      "oxc-resolver",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "ignoredBuiltDependencies": []
   }
 }

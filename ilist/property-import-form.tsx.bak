@@ -1,0 +1,1562 @@
+"use client"
+
+import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { 
+  FileSpreadsheet, 
+  Upload, 
+  FileUp, 
+  AlertCircle, 
+  CheckCircle2,
+  HelpCircle,
+  ArrowRight,
+  X,
+  Clipboard,
+  Loader2,
+  Info,
+  Database,
+  Check,
+  RefreshCw
+} from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
+import { formatBytes, cn } from "@/lib/utils"
+import { 
+  importPropertiesFromCSV, 
+  importPropertiesFromExcel,
+  ColumnMapping,
+  PropertyImportResult
+} from "@/services/client/property-import-service"
+
+// Allowed file types
+const ALLOWED_CSV_TYPES = [
+  'text/csv',
+  'application/vnd.ms-excel', // .csv, .xls
+  'application/csv',
+  'text/x-csv',
+  'application/x-csv',
+  'text/comma-separated-values',
+  'text/x-comma-separated-values'
+]
+
+const ALLOWED_EXCEL_TYPES = [
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel' // .xls
+]
+
+// Max file size (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+
+// Common property fields that might be in a CSV/Excel file
+const COMMON_PROPERTY_FIELDS = [
+  { id: "title", name: "Title/Name", required: true },
+  { id: "description", name: "Description" },
+  { id: "property_type", name: "Property Type" },
+  { id: "bedrooms", name: "Bedrooms" },
+  { id: "bathrooms", name: "Bathrooms" },
+  { id: "size", name: "Size (m²)" },
+  { id: "price", name: "Price/Rent", required: true },
+  { id: "security_deposit", name: "Security Deposit" },
+  { id: "address", name: "Address" },
+  { id: "city", name: "City", required: true },
+  { id: "state", name: "State/Province" },
+  { id: "postal_code", name: "Postal/Zip Code" },
+  { id: "country", name: "Country", required: true },
+  { id: "amenities", name: "Amenities (comma separated)" },
+  { id: "availability_date", name: "Availability Date" },
+  { id: "lease_term", name: "Lease Term" },
+  { id: "pet_policy", name: "Pet Policy" },
+  { id: "is_furnished", name: "Furnished (yes/no)" },
+  { id: "latitude", name: "Latitude" },
+  { id: "longitude", name: "Longitude" }
+]
+
+interface PropertyImportFormProps {
+  portfolioId: string
+  employerId?: string | null
+  realEstateProId?: string | null
+  onSuccess?: (result: PropertyImportResult) => void
+  onCancel?: () => void
+}
+
+export function PropertyImportForm({
+  portfolioId,
+  employerId = null,
+  realEstateProId = null,
+  onSuccess,
+  onCancel
+}: PropertyImportFormProps) {
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Source selection state
+  const [importSource, setImportSource] = useState<'excel' | 'ilist' | null>(null)
+  
+  // State for file handling
+  const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const [importType, setImportType] = useState<'csv' | 'excel' | null>(null)
+  
+  // State for preview data
+  const [previewData, setPreviewData] = useState<any[] | null>(null)
+  const [invalidData, setInvalidData] = useState<any[]>([])
+  const [headers, setHeaders] = useState<string[]>([])
+  
+  // State for column mapping
+  const [columnMapping, setColumnMapping] = useState<ColumnMapping>({})
+  
+  // State for import process
+  const [step, setStep] = useState<'source' | 'upload' | 'preview' | 'mapping' | 'importing' | 'complete' | 'error'>('source')
+  const [importProgress, setImportProgress] = useState(0)
+  const [importResult, setImportResult] = useState<PropertyImportResult | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+  
+  // Track if a file has been dragged over the drop zone
+  const [isDragging, setIsDragging] = useState(false)
+  
+  // Add state for CSV paste
+  const [uploadMethod, setUploadMethod] = useState<'file' | 'paste'>('file')
+  const [csvText, setCsvText] = useState('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  
+  // iList API integration
+  const [apiToken, setApiToken] = useState('')
+  const [isTokenValid, setIsTokenValid] = useState(false)
+  
+  // Import stats
+  const [importStats, setImportStats] = useState({
+    total: 0,
+    valid: 0,
+    invalid: 0
+  })
+  
+  // Handle file upload
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+    
+    // Reset states
+    setFileError(null)
+    setPreviewData(null)
+    setHeaders([])
+    setColumnMapping({})
+    
+    // Validate file size
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setFileError(`File size exceeds the limit of ${formatBytes(MAX_FILE_SIZE)}`)
+      return
+    }
+    
+    // Determine file type
+    let fileType: 'csv' | 'excel' | null = null
+    
+    if (ALLOWED_CSV_TYPES.includes(selectedFile.type) || selectedFile.name.endsWith('.csv')) {
+      fileType = 'csv'
+    } else if (ALLOWED_EXCEL_TYPES.includes(selectedFile.type) || 
+              selectedFile.name.endsWith('.xlsx') || 
+              selectedFile.name.endsWith('.xls')) {
+      fileType = 'excel'
+    } else {
+      setFileError('Invalid file type. Please upload a CSV or Excel file.')
+      return
+    }
+    
+    setFile(selectedFile)
+    setImportType(fileType)
+    
+    // Generate preview data
+    try {
+      await generatePreview(selectedFile, fileType)
+      setStep('preview')
+    } catch (error: any) {
+      setFileError(error.message || 'Failed to read file')
+    }
+  }
+  
+  // Handle file drop
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const droppedFile = e.dataTransfer.files?.[0]
+    if (!droppedFile) return
+    
+    // Reset states
+    setFileError(null)
+    setPreviewData(null)
+    setHeaders([])
+    setColumnMapping({})
+    
+    // Validate file size
+    if (droppedFile.size > MAX_FILE_SIZE) {
+      setFileError(`File size exceeds the limit of ${formatBytes(MAX_FILE_SIZE)}`)
+      return
+    }
+    
+    // Determine file type
+    let fileType: 'csv' | 'excel' | null = null
+    
+    if (ALLOWED_CSV_TYPES.includes(droppedFile.type) || droppedFile.name.endsWith('.csv')) {
+      fileType = 'csv'
+    } else if (ALLOWED_EXCEL_TYPES.includes(droppedFile.type) || 
+              droppedFile.name.endsWith('.xlsx') || 
+              droppedFile.name.endsWith('.xls')) {
+      fileType = 'excel'
+    } else {
+      setFileError('Invalid file type. Please upload a CSV or Excel file.')
+      return
+    }
+    
+    setFile(droppedFile)
+    setImportType(fileType)
+    
+    // Generate preview data
+    try {
+      await generatePreview(droppedFile, fileType)
+      setStep('preview')
+    } catch (error: any) {
+      setFileError(error.message || 'Failed to read file')
+    }
+  }
+  
+  // Handle CSV paste
+  const handleCsvPaste = async () => {
+    if (!csvText.trim()) {
+      setFileError('Please paste CSV content first')
+      return
+    }
+    
+    setIsProcessing(true)
+    setFileError(null)
+    
+    try {
+      // Create a Blob from the pasted CSV text
+      const csvBlob = new Blob([csvText], { type: 'text/csv' })
+      
+      // Create a file from the blob
+      const csvFile = new File([csvBlob], 'pasted-data.csv', { type: 'text/csv' })
+      
+      setFile(csvFile)
+      setImportType('csv')
+      
+      // Generate preview data
+      await generatePreview(csvFile, 'csv')
+      setStep('preview')
+    } catch (error: any) {
+      setFileError(error.message || 'Failed to process CSV text')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+  
+  // Test iList API connection
+  const testIListConnection = async () => {
+    setIsProcessing(true)
+    setFileError(null)
+    
+    try {
+      // Mock API token verification (replace with actual API call)
+      // This is a simplified implementation since the actual verifyAPIToken doesn't exist
+      const isValid = apiToken.length >= 20
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      setIsTokenValid(isValid)
+      
+      if (!isValid) {
+        setFileError('Invalid API token or connection failed')
+      }
+    } catch (error: any) {
+      setFileError(error.message || 'Failed to verify API token')
+      setIsTokenValid(false)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+  
+  // Import from iList API
+  const importFromIList = async () => {
+    setIsProcessing(true)
+    setFileError(null)
+    
+    try {
+      // Mock API import (replace with actual API call)
+      // This is a simplified implementation since the actual importPropertiesFromAPI doesn't exist
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Generate mock property data
+      const mockProperties = Array.from({ length: 10 }, (_, i) => ({
+        title: `Property ${i + 1}`,
+        property_type: ['Apartment', 'House', 'Studio'][Math.floor(Math.random() * 3)],
+        bedrooms: Math.floor(Math.random() * 5) + 1,
+        bathrooms: Math.floor(Math.random() * 3) + 1,
+        size: Math.floor(Math.random() * 100) + 50,
+        price: Math.floor(Math.random() * 2000) + 500,
+        city: 'New York',
+        country: 'USA',
+        address: `${Math.floor(Math.random() * 1000) + 1} Main Street`,
+        is_furnished: Math.random() > 0.5
+      }))
+      
+      // Mock result
+      const mockResult = {
+        properties: mockProperties,
+        total: mockProperties.length,
+        valid: mockProperties.length,
+        invalid: 0,
+        importId: 'mock-import-id',
+        invalidProperties: []
+      }
+      
+      // Update stats and preview data
+      setPreviewData(mockResult.properties.slice(0, 5))
+      setImportStats({
+        total: mockResult.total || 0,
+        valid: mockResult.valid || 0,
+        invalid: mockResult.invalid || 0
+      })
+      
+      // Create a dummy mapping for API imports
+      const apiMapping: ColumnMapping = {}
+      COMMON_PROPERTY_FIELDS.forEach(field => {
+        if (field.required) {
+          apiMapping[field.id] = field.id
+        }
+      })
+      setColumnMapping(apiMapping)
+      
+      // Store import result for later use
+      setImportResult({
+        total: mockResult.total || 0,
+        success: mockResult.valid || 0,
+        failed: mockResult.invalid || 0,
+        importId: mockResult.importId || '',
+        errorDetails: []
+      })
+      
+      setStep('preview')
+    } catch (error: any) {
+      setFileError(error.message || 'Failed to import from API')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+  
+  // Generate preview data from file
+  const generatePreview = async (file: File, type: 'csv' | 'excel') => {
+    if (type === 'csv') {
+      return new Promise<void>((resolve, reject) => {
+        const reader = new FileReader()
+        
+        reader.onload = (e) => {
+          try {
+            const result = e.target?.result as string
+            
+            // Use Papa Parse to parse CSV
+            // @ts-ignore - Papa is imported globally
+            Papa.parse(result, {
+              header: true,
+              preview: 5, // Preview first 5 rows
+              skipEmptyLines: true,
+              complete: (results: any) => {
+                if (results.errors.length > 0) {
+                  reject(new Error(`CSV parse error: ${results.errors[0].message}`))
+                  return
+                }
+                
+                setPreviewData(results.data)
+                
+                // Extract headers
+                if (results.meta.fields) {
+                  setHeaders(results.meta.fields)
+                  
+                  // Auto-map columns based on header names
+                  const mapping = autoMapColumns(results.meta.fields)
+                  setColumnMapping(mapping)
+                }
+                
+                // Set import stats
+                setImportStats({
+                  total: results.data.length,
+                  valid: results.data.length,
+                  invalid: 0
+                })
+                
+                resolve()
+              },
+              error: (error: any) => {
+                reject(new Error(`CSV parse error: ${error.message}`))
+              }
+            })
+          } catch (error: any) {
+            reject(new Error(`Failed to parse CSV: ${error.message}`))
+          }
+        }
+        
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'))
+        }
+        
+        reader.readAsText(file)
+      })
+    } else if (type === 'excel') {
+      return new Promise<void>((resolve, reject) => {
+        const reader = new FileReader()
+        
+        reader.onload = (e) => {
+          try {
+            const data = e.target?.result
+            if (!data) {
+              reject(new Error('No data read from file'))
+              return
+            }
+            
+            // Parse Excel file
+            // @ts-ignore - XLSX is imported globally
+            const workbook = XLSX.read(data, { type: 'array' })
+            const firstSheetName = workbook.SheetNames[0]
+            const worksheet = workbook.Sheets[firstSheetName]
+            
+            // Convert to JSON
+            // @ts-ignore - XLSX is imported globally
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+            
+            if (jsonData.length < 2) {
+              reject(new Error('Excel file must contain headers and at least one row of data'))
+              return
+            }
+            
+            // Extract headers and data
+            const excelHeaders = jsonData[0] as string[]
+            const rows = jsonData.slice(1, 6).map((row: any) => {
+              const obj: any = {}
+              // @ts-ignore - row is array
+              row.forEach((cell: any, i: number) => {
+                if (i < excelHeaders.length) {
+                  obj[excelHeaders[i]] = cell
+                }
+              })
+              return obj
+            })
+            
+            setHeaders(excelHeaders)
+            setPreviewData(rows)
+            
+            // Auto-map columns based on header names
+            const mapping = autoMapColumns(excelHeaders)
+            setColumnMapping(mapping)
+            
+            // Set import stats
+            setImportStats({
+              total: jsonData.length - 1, // Subtract header row
+              valid: jsonData.length - 1,
+              invalid: 0
+            })
+            
+            resolve()
+          } catch (error: any) {
+            reject(new Error(`Failed to parse Excel file: ${error.message}`))
+          }
+        }
+        
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'))
+        }
+        
+        reader.readAsArrayBuffer(file)
+      })
+    }
+  }
+  
+  // Auto-map columns based on headers
+  const autoMapColumns = (headers: string[]): ColumnMapping => {
+    const mapping: ColumnMapping = {}
+    
+    // Convert headers to lowercase for case-insensitive matching
+    const lowerHeaders = headers.map(h => h.toLowerCase())
+    
+    // Map common fields
+    COMMON_PROPERTY_FIELDS.forEach(field => {
+      // Try exact match
+      let index = lowerHeaders.findIndex(h => h === field.id.toLowerCase())
+      
+      // Try contains match if exact match not found
+      if (index === -1) {
+        index = lowerHeaders.findIndex(h => h.includes(field.id.toLowerCase()))
+      }
+      
+      // Additional common variations
+      if (index === -1) {
+        switch (field.id) {
+          case 'title':
+            index = lowerHeaders.findIndex(h => 
+              h.includes('name') || h.includes('property name') || h.includes('property title'))
+            break
+          case 'bedrooms':
+            index = lowerHeaders.findIndex(h => 
+              h.includes('bed') || h.includes('bedroom') || h.includes('beds'))
+            break
+          case 'bathrooms':
+            index = lowerHeaders.findIndex(h => 
+              h.includes('bath') || h.includes('bathroom') || h.includes('baths'))
+            break
+          case 'price':
+            index = lowerHeaders.findIndex(h => 
+              h.includes('rent') || h.includes('monthly') || h.includes('price') || h.includes('cost'))
+            break
+          case 'is_furnished':
+            index = lowerHeaders.findIndex(h => 
+              h.includes('furnished') || h.includes('furniture'))
+            break
+          // Add more common variations as needed
+        }
+      }
+      
+      if (index !== -1) {
+        mapping[field.id] = headers[index]
+      }
+    })
+    
+    return mapping
+  }
+  
+  // Handle column mapping change
+  const handleMappingChange = (fieldId: string, headerName: string | null) => {
+    if (!headerName) {
+      // Remove mapping if null selected
+      const newMapping = { ...columnMapping }
+      delete newMapping[fieldId]
+      setColumnMapping(newMapping)
+    } else {
+      setColumnMapping(prev => ({
+        ...prev,
+        [fieldId]: headerName
+      }))
+    }
+  }
+  
+  // Check if we have all required field mappings
+  const hasRequiredMappings = () => {
+    const requiredFields = COMMON_PROPERTY_FIELDS.filter(f => f.required).map(f => f.id)
+    return requiredFields.every(field => columnMapping[field])
+  }
+  
+  // Start import process
+  const handleStartImport = async () => {
+    if (importSource === 'ilist') {
+      // iList imports already have results from the API
+      if (importResult) {
+        if (onSuccess) {
+          onSuccess(importResult)
+        }
+        setStep('complete')
+      } else {
+        setImportError('No import result available')
+        setStep('error')
+      }
+      return
+    }
+    
+    if (!file || !importType) {
+      setImportError('No file selected')
+      return
+    }
+    
+    if (!hasRequiredMappings()) {
+      setImportError('Missing required field mappings')
+      return
+    }
+    
+    setStep('importing')
+    setImportProgress(0)
+    setImportError(null)
+    
+    try {
+      let result: PropertyImportResult
+      
+      if (importType === 'csv') {
+        result = await importPropertiesFromCSV(
+          file,
+          portfolioId,
+          columnMapping,
+          employerId,
+          realEstateProId,
+          (progress) => setImportProgress(progress)
+        )
+      } else {
+        result = await importPropertiesFromExcel(
+          file,
+          portfolioId,
+          columnMapping,
+          employerId,
+          realEstateProId,
+          (progress) => setImportProgress(progress)
+        )
+      }
+      
+      setImportResult(result)
+      setStep('complete')
+      
+      // If onSuccess callback provided, call it
+      if (onSuccess) {
+        onSuccess(result)
+      }
+    } catch (error: any) {
+      console.error('Import error:', error)
+      setImportError(error.message || 'An error occurred during import')
+      setStep('error')
+    }
+  }
+  
+  // Reset the form to start over
+  const handleReset = () => {
+    setFile(null)
+    setFileError(null)
+    setPreviewData(null)
+    setInvalidData([])
+    setHeaders([])
+    setColumnMapping({})
+    setImportType(null)
+    setImportSource(null)
+    setImportProgress(0)
+    setImportResult(null)
+    setImportError(null)
+    setCsvText('')
+    setUploadMethod('file')
+    setApiToken('')
+    setIsTokenValid(false)
+    setImportStats({
+      total: 0,
+      valid: 0,
+      invalid: 0
+    })
+    setStep('source')
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+  
+  // Complete the import process
+  const handleComplete = () => {
+    // Refresh the page or navigate to properties
+    router.refresh()
+    
+    // If onSuccess callback provided, call it again
+    if (importResult && onSuccess) {
+      onSuccess(importResult)
+    }
+  }
+  
+  // Render source selection
+  const renderSourceSelection = () => (
+    <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+      <Card 
+        className={cn(
+          "flex flex-col items-center justify-center p-6 cursor-pointer border-2 border-dashed transition-all",
+          "hover:border-primary/50 hover:bg-primary/5"
+        )}
+        onClick={() => {
+          setImportSource('excel')
+          setStep('upload')
+        }}
+      >
+        <FileSpreadsheet size={48} className="text-primary mb-4" />
+        <CardTitle className="text-lg mb-2">
+          Excel/CSV Import
+        </CardTitle>
+        <CardDescription className="text-center">
+          Import properties from Excel (.xlsx) or CSV files
+        </CardDescription>
+      </Card>
+      
+      <Card 
+        className={cn(
+          "flex flex-col items-center justify-center p-6 cursor-pointer border-2 border-dashed transition-all",
+          "hover:border-primary/50 hover:bg-primary/5"
+        )}
+        onClick={() => {
+          setImportSource('ilist')
+          setStep('upload')
+        }}
+      >
+        <Database size={48} className="text-primary mb-4" />
+        <CardTitle className="text-lg mb-2">
+          iList API Import
+        </CardTitle>
+        <CardDescription className="text-center">
+          Import properties from iList property database
+        </CardDescription>
+      </Card>
+    </div>
+  )
+  
+  // Render Excel upload UI
+  const renderExcelUpload = () => (
+    <div className="space-y-6">
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>File Format</AlertTitle>
+        <AlertDescription>
+          Your file should include columns for: Title, Type, Price, Area, Rooms, Bathrooms, Square Meters, and Features
+        </AlertDescription>
+      </Alert>
+      
+      <Tabs defaultValue="file" className="w-full mb-6">
+        <TabsList className="w-full grid grid-cols-2 mb-4">
+          <TabsTrigger value="file" onClick={() => setUploadMethod('file')}>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload File
+          </TabsTrigger>
+          <TabsTrigger value="paste" onClick={() => setUploadMethod('paste')}>
+            <Clipboard className="mr-2 h-4 w-4" />
+            Paste CSV
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="file">
+          <div 
+            className={`border-2 border-dashed rounded-lg p-12 text-center ${
+              isDragging ? 'border-primary bg-primary/5' : 'border-gray-300'
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setIsDragging(true)
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleFileDrop}
+          >
+            <div className="flex flex-col items-center">
+              <FileSpreadsheet className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Upload Property Data</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                Drag and drop your CSV or Excel file here, or click to browse.
+                Your file should contain property data with headers.
+              </p>
+              
+              <Input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileChange}
+              />
+              
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center"
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Select File
+                  </>
+                )}
+              </Button>
+              
+              <p className="mt-4 text-xs text-muted-foreground">
+                Supported formats: CSV, Excel (.xlsx, .xls)
+                <br />
+                Maximum file size: {formatBytes(MAX_FILE_SIZE)}
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="paste">
+          <div className="space-y-4">
+            <div className="p-6 border-2 border-dashed rounded-lg bg-background">
+              <h3 className="text-lg font-medium mb-2">Paste CSV Content</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Paste your CSV data directly from a spreadsheet or text editor.
+                Make sure the first row contains column headers.
+              </p>
+              
+              <Textarea 
+                placeholder="Paste your CSV content here..."
+                className="min-h-[200px] font-mono text-sm"
+                value={csvText}
+                onChange={(e) => setCsvText(e.target.value)}
+                disabled={isProcessing}
+              />
+              
+              <Button
+                className="w-full mt-4"
+                onClick={handleCsvPaste}
+                disabled={isProcessing || !csvText.trim()}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Clipboard className="mr-2 h-4 w-4" />
+                    Process CSV Data
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className="bg-muted rounded-md p-3">
+              <div className="flex items-start">
+                <Info className="w-4 h-4 text-muted-foreground mt-0.5 mr-2" />
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-medium mb-1">CSV Format Tips:</p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    <li>Make sure your first row contains column headers</li>
+                    <li>Columns should be separated by commas (,) or semicolons (;)</li>
+                    <li>Text containing commas should be enclosed in quotes</li>
+                    <li>Date format should be YYYY-MM-DD</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      {fileError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md flex items-start">
+          <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">Error</p>
+            <p className="text-sm">{fileError}</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Template download section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Need a template?</CardTitle>
+          <CardDescription>
+            Download a template file to get started
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Use our template to ensure your data is formatted correctly.
+            The template includes all required fields and examples.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm">
+              <FileUp className="mr-2 h-4 w-4" />
+              Download CSV Template
+            </Button>
+            <Button variant="outline" size="sm">
+              <FileUp className="mr-2 h-4 w-4" />
+              Download Excel Template
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+      
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={() => setStep('source')}>
+          Back
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render iList API UI
+  const renderIListApiUI = () => (
+    <div className="space-y-6">
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>API Integration</AlertTitle>
+        <AlertDescription>
+          Enter your iList API token to connect to your iList account and import properties
+        </AlertDescription>
+      </Alert>
+      
+      <div className="p-6 border rounded-lg bg-background">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="api-token" className="block text-sm font-medium mb-1">
+              API Token
+            </label>
+            <div className="flex space-x-2">
+              <Input
+                id="api-token"
+                type="password"
+                value={apiToken}
+                onChange={(e) => setApiToken(e.target.value)}
+                placeholder="Enter your iList API token"
+                className="flex-1"
+                disabled={isProcessing || isTokenValid}
+              />
+              <Button 
+                onClick={testIListConnection} 
+                disabled={apiToken.length < 10 || isProcessing || isTokenValid}
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Test Connection"
+                )}
+              </Button>
+            </div>
+          </div>
+          
+          {isTokenValid && (
+            <Alert>
+              <Check className="h-4 w-4" />
+              <AlertTitle>Connection Successful</AlertTitle>
+              <AlertDescription>
+                Connected to iList API successfully
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {fileError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Connection Error</AlertTitle>
+              <AlertDescription>{fileError}</AlertDescription>
+            </Alert>
+          )}
+          
+          <Button 
+            className="w-full" 
+            disabled={!isTokenValid || isProcessing} 
+            onClick={importFromIList}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <Database className="mr-2 h-4 w-4" />
+                Import Properties
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+      
+      <div className="mt-4 p-3 bg-muted rounded-md">
+        <div className="flex items-start">
+          <Info className="w-4 h-4 text-muted-foreground mt-0.5 mr-2" />
+          <div className="text-xs text-muted-foreground">
+            <p className="font-medium mb-1">iList API Import:</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              <li>You need a valid iList API token to use this feature</li>
+              <li>Properties are imported directly from your iList account</li>
+              <li>This may take a few minutes depending on the number of properties</li>
+              <li>Contact support if you need help getting an API token</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={() => setStep('source')}>
+          Back
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render preview step
+  const renderPreviewStep = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Preview Data</h3>
+          <p className="text-sm text-muted-foreground">
+            Review the first few rows to ensure data loaded correctly
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="flex items-center">
+            {importSource === 'excel' ? (
+              <>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                {file?.name || 'Pasted CSV data'}
+              </>
+            ) : (
+              <>
+                <Database className="mr-2 h-4 w-4" />
+                iList API Data
+              </>
+            )}
+          </Badge>
+          <Button variant="ghost" size="sm" onClick={handleReset}>
+            <X className="h-4 w-4 mr-1" />
+            Change Source
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg mb-6">
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold">{importStats.total}</span>
+          <span className="text-sm text-muted-foreground">Total Properties</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-green-600">{importStats.valid}</span>
+          <span className="text-sm text-muted-foreground">Valid Properties</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-red-600">{importStats.invalid}</span>
+          <span className="text-sm text-muted-foreground">Invalid Properties</span>
+        </div>
+      </div>
+      
+      <Tabs defaultValue="valid" className="w-full">
+        <TabsList className="mb-4 w-full grid grid-cols-2">
+          <TabsTrigger value="valid">
+            Valid Properties
+            <Badge className="ml-2 bg-green-500 text-white">{importStats.valid}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="invalid">
+            Invalid Properties
+            <Badge variant="destructive" className="ml-2">{importStats.invalid}</Badge>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="valid">
+          {/* Preview table */}
+          <div className="border rounded-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {importSource === 'excel' ? (
+                      // For Excel files, use headers array
+                      headers.map((header, index) => (
+                        <TableHead key={index}>{header}</TableHead>
+                      ))
+                    ) : (
+                      // For API imports, use common property fields
+                      COMMON_PROPERTY_FIELDS.filter(f => f.required || f.id === 'property_type' || f.id === 'bedrooms' || f.id === 'bathrooms').map((field) => (
+                        <TableHead key={field.id}>{field.name.replace(/\([^)]*\)/g, '')}</TableHead>
+                      ))
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {previewData && previewData.map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {importSource === 'excel' ? (
+                        // For Excel files, use headers array
+                        headers.map((header, colIndex) => (
+                          <TableCell key={colIndex}>
+                            {row[header] !== undefined ? String(row[header]) : ''}
+                          </TableCell>
+                        ))
+                      ) : (
+                        // For API imports, use common property fields
+                        COMMON_PROPERTY_FIELDS.filter(f => f.required || f.id === 'property_type' || f.id === 'bedrooms' || f.id === 'bathrooms').map((field) => (
+                          <TableCell key={field.id}>
+                            {row[field.id] !== undefined ? String(row[field.id]) : ''}
+                          </TableCell>
+                        ))
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          
+          {previewData && importStats.valid > previewData.length && (
+            <p className="text-sm text-center text-muted-foreground mt-2">
+              Showing {previewData.length} of {importStats.valid} valid properties
+            </p>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="invalid">
+          {invalidData.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {invalidData.map((property, index) => (
+                  <Alert key={index} variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-medium">{property.title || 'Unnamed Property'}</AlertTitle>
+                    <AlertDescription>
+                      <p className="text-sm mt-1">
+                        Errors:
+                        <ul className="ml-4 mt-1 list-disc">
+                          {property.errors && Array.isArray(property.errors) ? (
+                            property.errors.map((error: string, idx: number) => (
+                              <li key={idx}>{error}</li>
+                            ))
+                          ) : (
+                            <li>Invalid property data</li>
+                          )}
+                        </ul>
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                ))}
+              </div>
+              
+              {invalidData.length < importStats.invalid && (
+                <p className="text-sm text-center text-muted-foreground mt-2">
+                  Showing {invalidData.length} of {importStats.invalid} invalid properties
+                </p>
+              )}
+            </>
+          ) : (
+            <Alert className="bg-green-50 border-green-200 text-green-800">
+              <Check className="h-4 w-4" />
+              <AlertTitle>All Properties Valid</AlertTitle>
+              <AlertDescription>
+                All properties are valid and ready to import.
+              </AlertDescription>
+            </Alert>
+          )}
+        </TabsContent>
+      </Tabs>
+      
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={() => setStep('upload')}
+        >
+          Back
+        </Button>
+        <Button
+          onClick={importSource === 'ilist' ? handleStartImport : () => setStep('mapping')}
+          disabled={importStats.valid === 0}
+        >
+          {importSource === 'ilist' ? (
+            <>
+              Import {importStats.valid} Properties
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Continue to Mapping
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render column mapping step
+  const renderMappingStep = () => (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Map Columns</h3>
+        <p className="text-sm text-muted-foreground">
+          Match your file columns to property fields. Required fields are marked with an asterisk (*).
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {COMMON_PROPERTY_FIELDS.map((field) => (
+          <div key={field.id} className="space-y-2">
+            <div className="flex items-center">
+              <Label htmlFor={`field-${field.id}`} className="grow">
+                {field.name} {field.required && <span className="text-red-500">*</span>}
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-sm">
+                      {field.id === 'title' && 'The name or title of the property.'}
+                      {field.id === 'description' && 'A description of the property.'}
+                      {field.id === 'property_type' && 'The type of property (e.g., Apartment, House, Studio).'}
+                      {field.id === 'bedrooms' && 'Number of bedrooms.'}
+                      {field.id === 'bathrooms' && 'Number of bathrooms.'}
+                      {field.id === 'size' && 'Size of the property in square meters.'}
+                      {field.id === 'price' && 'Monthly rent price.'}
+                      {field.id === 'security_deposit' && 'Security deposit amount.'}
+                      {field.id === 'address' && 'Street address of the property.'}
+                      {field.id === 'city' && 'City where the property is located.'}
+                      {field.id === 'country' && 'Country where the property is located.'}
+                      {field.id === 'amenities' && 'Comma-separated list of amenities.'}
+                      {field.id === 'is_furnished' && 'Whether the property is furnished (yes/no, true/false, 1/0).'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Select
+              value={columnMapping[field.id] || ''}
+              onValueChange={(value) => handleMappingChange(field.id, value || null)}
+            >
+              <SelectTrigger id={`field-${field.id}`} className={field.required && !columnMapping[field.id] ? 'border-red-300' : ''}>
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {headers.map((header) => (
+                  <SelectItem key={header} value={header}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {field.required && !columnMapping[field.id] && (
+              <p className="text-xs text-red-500">This field is required</p>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-between pt-4">
+        <Button
+          variant="outline"
+          onClick={() => setStep('preview')}
+        >
+          Back
+        </Button>
+        <Button
+          onClick={handleStartImport}
+          disabled={!hasRequiredMappings()}
+        >
+          Start Import
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render importing step
+  const renderImportingStep = () => (
+    <div className="space-y-6 py-8">
+      <div className="text-center">
+        <h3 className="text-lg font-medium mb-2">Importing Properties</h3>
+        <p className="text-sm text-muted-foreground mb-8">
+          Please wait while we import your properties. This may take a few minutes depending on file size.
+        </p>
+        
+        <div className="w-full max-w-md mx-auto mb-8">
+          <Progress value={importProgress} className="h-2" />
+          <p className="text-sm text-muted-foreground mt-2">{importProgress}% complete</p>
+        </div>
+        
+        {/* Show different messages based on progress */}
+        <div className="text-sm text-muted-foreground">
+          {importProgress < 10 && (
+            <p>Preparing to import your properties...</p>
+          )}
+          {importProgress >= 10 && importProgress < 50 && (
+            <p>Processing data and validating properties...</p>
+          )}
+          {importProgress >= 50 && importProgress < 90 && (
+            <p>Importing properties to the database...</p>
+          )}
+          {importProgress >= 90 && (
+            <p>Almost done! Finalizing import...</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+  
+  // Render complete step
+  const renderCompleteStep = () => (
+    <div className="space-y-6">
+      <div className="text-center py-4">
+        <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
+        <h3 className="text-xl font-medium mb-2">Import Complete</h3>
+        <p className="text-muted-foreground mb-8">
+          Your properties have been successfully imported
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl">{importResult?.total || 0}</CardTitle>
+            <CardDescription>Total Records</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl text-green-600">{importResult?.success || 0}</CardTitle>
+            <CardDescription>Successfully Imported</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-2xl text-red-600">{importResult?.failed || 0}</CardTitle>
+            <CardDescription>Errors</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+      
+      {importResult && importResult.failed > 0 && importResult.errorDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Error Details</CardTitle>
+            <CardDescription>
+              The following errors occurred during import
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-60 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Row</TableHead>
+                    <TableHead>Errors</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {importResult.errorDetails.map((error, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="align-top">
+                        {error.row ? (
+                          <>
+                            {error.row.title || error.row[Object.keys(error.row)[0]] || `Row ${index + 1}`}
+                          </>
+                        ) : (
+                          `Batch ${index + 1}`
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <ul className="list-disc list-inside">
+                          {Array.isArray(error.message) ? (
+                            error.message.map((err, errIndex) => (
+                              <li key={errIndex} className="text-sm text-red-600">
+                                {err}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="text-sm text-red-600">{error.message || 'Unknown error'}</li>
+                          )}
+                        </ul>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      <div className="flex justify-between pt-4">
+        <Button
+          variant="outline"
+          onClick={handleReset}
+        >
+          Import Another File
+        </Button>
+        <Button onClick={handleComplete}>
+          Complete
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render error step
+  const renderErrorStep = () => (
+    <div className="space-y-6">
+      <div className="text-center py-4">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-xl font-medium mb-2">Import Failed</h3>
+        <p className="text-red-600 mb-2">
+          {importError || 'An error occurred during the import process'}
+        </p>
+        <p className="text-muted-foreground mb-8">
+          Please try again or contact support if the problem persists
+        </p>
+      </div>
+      
+      <div className="flex justify-between pt-4">
+        <Button
+          variant="outline"
+          onClick={handleReset}
+        >
+          Start Over
+        </Button>
+        <Button 
+          variant="default"
+          onClick={onCancel || (() => router.push('/dashboard/properties'))}
+        >
+          Cancel Import
+        </Button>
+      </div>
+    </div>
+  )
+  
+  // Render the appropriate step
+  const renderStep = () => {
+    switch (step) {
+      case 'source':
+        return renderSourceSelection()
+      case 'upload':
+        return importSource === 'excel' ? renderExcelUpload() : renderIListApiUI()
+      case 'preview':
+        return renderPreviewStep()
+      case 'mapping':
+        return renderMappingStep()
+      case 'importing':
+        return renderImportingStep()
+      case 'complete':
+        return renderCompleteStep()
+      case 'error':
+        return renderErrorStep()
+      default:
+        return renderSourceSelection()
+    }
+  }
+  
+  return (
+    <div className="max-w-5xl mx-auto">
+      {/* Progress steps - only show for excel imports after source selection */}
+      {importSource === 'excel' && step !== 'source' && step !== 'complete' && step !== 'error' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className={`flex flex-col items-center ${step === 'upload' ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'upload' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                1
+              </div>
+              <span className="text-xs">Upload</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step === 'upload' ? 'bg-muted' : 'bg-primary'}`}></div>
+            <div className={`flex flex-col items-center ${step === 'preview' ? 'text-primary' : step === 'upload' ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'preview' ? 'bg-primary text-white' : step === 'mapping' || step === 'importing' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                2
+              </div>
+              <span className="text-xs">Preview</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step === 'upload' || step === 'preview' ? 'bg-muted' : 'bg-primary'}`}></div>
+            <div className={`flex flex-col items-center ${step === 'mapping' ? 'text-primary' : step === 'importing' ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'mapping' ? 'bg-primary text-white' : step === 'importing' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                3
+              </div>
+              <span className="text-xs">Mapping</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step === 'importing' ? 'bg-primary' : 'bg-muted'}`}></div>
+            <div className={`flex flex-col items-center ${step === 'importing' ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'importing' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                4
+              </div>
+              <span className="text-xs">Import</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Progress steps - only show for iList imports after source selection */}
+      {importSource === 'ilist' && step !== 'source' && step !== 'complete' && step !== 'error' && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className={`flex flex-col items-center ${step === 'upload' ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'upload' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                1
+              </div>
+              <span className="text-xs">Connect</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step === 'upload' ? 'bg-muted' : 'bg-primary'}`}></div>
+            <div className={`flex flex-col items-center ${step === 'preview' ? 'text-primary' : step === 'upload' ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'preview' ? 'bg-primary text-white' : step === 'importing' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                2
+              </div>
+              <span className="text-xs">Preview</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step === 'importing' ? 'bg-primary' : 'bg-muted'}`}></div>
+            <div className={`flex flex-col items-center ${step === 'importing' ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                step === 'importing' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              }`}>
+                3
+              </div>
+              <span className="text-xs">Import</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Main content */}
+      <div>
+        {renderStep()}
+      </div>
+    </div>
+  )
+}

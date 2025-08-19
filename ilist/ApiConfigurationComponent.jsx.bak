@@ -1,0 +1,372 @@
+// ApiConfigurationComponent.jsx
+import React, { useState, useEffect } from 'react';
+import { testApiConnection, setAuthToken, fetchProperties, transformApiProperties } from '../services/iListApiService';
+
+const ApiConfigurationComponent = ({ setProperties, setFilteredProperties, setSuccessMessage, setError }) => {
+  const [token, setToken] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [syncSettings, setSyncSettings] = useState({
+    autoSync: false,
+    syncInterval: 60, // minutes
+  });
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncDate, setLastSyncDate] = useState(null);
+  const [syncStats, setSyncStats] = useState({
+    totalProperties: 0,
+    newProperties: 0,
+    updatedProperties: 0,
+  });
+
+  // Load saved token and settings from localStorage
+  useEffect(() => {
+    const savedToken = localStorage.getItem('ilistApiToken');
+    if (savedToken) {
+      setToken(savedToken);
+      setAuthToken(savedToken);
+
+      // Test connection automatically if token exists
+      const testConnection = async () => {
+        setIsTesting(true);
+        try {
+          const connected = await testApiConnection();
+          setIsConnected(connected);
+        } catch (err) {
+          setIsConnected(false);
+        } finally {
+          setIsTesting(false);
+        }
+      };
+
+      testConnection();
+    }
+
+    const savedSettings = localStorage.getItem('ilistSyncSettings');
+    if (savedSettings) {
+      setSyncSettings(JSON.parse(savedSettings));
+    }
+
+    const savedLastSync = localStorage.getItem('ilistLastSyncDate');
+    if (savedLastSync) {
+      setLastSyncDate(new Date(savedLastSync));
+    }
+  }, []);
+
+  // Save token to local storage and the API service when it changes
+  const saveToken = async () => {
+    if (!token.trim()) {
+      setError('Παρακαλώ εισάγετε ένα έγκυρο token');
+      return;
+    }
+
+    setIsSaving(true);
+    setAuthToken(token);
+
+    try {
+      const connected = await testApiConnection();
+
+      if (connected) {
+        localStorage.setItem('ilistApiToken', token);
+        setIsConnected(true);
+        setSuccessMessage('Το token αποθηκεύτηκε και η σύνδεση είναι επιτυχής');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setError('Το token δεν είναι έγκυρο. Παρακαλώ ελέγξτε και προσπαθήστε ξανά.');
+        setIsConnected(false);
+      }
+    } catch (err) {
+      setError('Σφάλμα κατά τον έλεγχο σύνδεσης: ' + err.message);
+      setIsConnected(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Test API connection
+  const testConnection = async () => {
+    if (!token.trim()) {
+      setError('Παρακαλώ εισάγετε ένα έγκυρο token');
+      return;
+    }
+
+    setIsTesting(true);
+    setAuthToken(token);
+
+    try {
+      const connected = await testApiConnection();
+      setIsConnected(connected);
+
+      if (connected) {
+        setSuccessMessage('Επιτυχής σύνδεση με το API της ilist');
+      } else {
+        setError('Η σύνδεση απέτυχε. Παρακαλώ ελέγξτε το token και προσπαθήστε ξανά.');
+      }
+
+      setTimeout(() => {
+        setSuccessMessage('');
+        setError(null);
+      }, 3000);
+    } catch (err) {
+      setError('Σφάλμα κατά τον έλεγχο σύνδεσης: ' + err.message);
+      setIsConnected(false);
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  // Handle settings change
+  const handleSettingsChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+
+    setSyncSettings(prev => {
+      const newSettings = {
+        ...prev,
+        [name]: type === 'number' ? parseInt(newValue, 10) : newValue
+      };
+
+      // Save to localStorage
+      localStorage.setItem('ilistSyncSettings', JSON.stringify(newSettings));
+      return newSettings;
+    });
+  };
+
+  // Sync properties from the API
+  const syncProperties = async () => {
+    if (!isConnected) {
+      setError('Παρακαλώ συνδεθείτε πρώτα με το API');
+      return;
+    }
+
+    setIsSyncing(true);
+
+    try {
+      // Get the date of the last successful sync or use a default date
+      const lastSyncDateObj = lastSyncDate ? new Date(lastSyncDate) : new Date(2020, 0, 1);
+
+      // Fetch properties from API that were updated since last sync
+      const response = await fetchProperties({
+        UpdateDateFromUTC: lastSyncDateObj.toISOString(),
+        StatusID: "1", // Active properties
+        isSync: true
+      });
+
+      if (response.success) {
+        // Transform API data to our internal format
+        const transformedProperties = transformApiProperties(response.data);
+
+        // Get current properties
+        const currentProperties = JSON.parse(localStorage.getItem('propertyListings') || '[]');
+
+        // Track changes for stats
+        let newCount = 0;
+        let updatedCount = 0;
+
+        // Merge with existing properties, updating where needed
+        const mergedProperties = [...currentProperties];
+
+        // Map of existing property IDs for quick lookup
+        const existingIds = new Map(currentProperties.map(p => [p.ID, true]));
+
+        for (const apiProperty of transformedProperties) {
+          const existingIndex = mergedProperties.findIndex(p => p.ID === apiProperty.ID);
+
+          if (existingIndex >= 0) {
+            // Update existing property
+            mergedProperties[existingIndex] = {
+              ...mergedProperties[existingIndex],
+              ...apiProperty,
+              // Preserve user-defined fields
+              favorite: mergedProperties[existingIndex].favorite,
+              status: mergedProperties[existingIndex].status,
+              ενδιαφερόμενος: mergedProperties[existingIndex].ενδιαφερόμενος,
+              commentHistory: mergedProperties[existingIndex].commentHistory,
+            };
+            updatedCount++;
+          } else {
+            // Add new property
+            mergedProperties.push(apiProperty);
+            newCount++;
+          }
+        }
+
+        // Update state and localStorage
+        setProperties(mergedProperties);
+        setFilteredProperties(mergedProperties);
+        localStorage.setItem('propertyListings', JSON.stringify(mergedProperties));
+
+        // Update sync stats
+        const stats = {
+          totalProperties: mergedProperties.length,
+          newProperties: newCount,
+          updatedProperties: updatedCount,
+        };
+        setSyncStats(stats);
+
+        // Update last sync date
+        const now = new Date();
+        setLastSyncDate(now);
+        localStorage.setItem('ilistLastSyncDate', now.toISOString());
+
+        setSuccessMessage(`Συγχρονισμός επιτυχής: ${newCount} νέα, ${updatedCount} ενημερωμένα, σύνολο: ${mergedProperties.length} ακίνητα`);
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        setError('Ο συγχρονισμός απέτυχε: ' + (response.error || 'Άγνωστο σφάλμα'));
+      }
+    } catch (err) {
+      setError('Σφάλμα κατά τον συγχρονισμό: ' + err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Format date for display
+  const formatDate = (date) => {
+    if (!date) return 'Ποτέ';
+
+    return new Date(date).toLocaleString('el-GR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4">Σύνδεση με API ilist</h2>
+
+      <div className="mb-6">
+        <div className="flex items-start space-x-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-2">
+              Authentication Token
+            </label>
+            <input
+              type="password"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none"
+              placeholder="Εισάγετε το token του API..."
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Το token μπορείτε να το βρείτε στο λογαριασμό ilist της εταιρείας σας.
+            </p>
+          </div>
+
+          <div className="pt-7">
+            <button
+              onClick={testConnection}
+              disabled={isTesting || !token.trim()}
+              className={`px-4 py-2 rounded text-white ${
+                isTesting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+              } transition`}
+            >
+              {isTesting ? 'Έλεγχος...' : 'Έλεγχος'}
+            </button>
+          </div>
+
+          <div className="pt-7">
+            <button
+              onClick={saveToken}
+              disabled={isSaving || !token.trim()}
+              className={`px-4 py-2 rounded text-white ${
+                isSaving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+              } transition`}
+            >
+              {isSaving ? 'Αποθήκευση...' : 'Αποθήκευση'}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-2">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
+            isConnected
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
+          }`}>
+            <span className={`w-2 h-2 rounded-full mr-2 ${
+              isConnected ? 'bg-green-600' : 'bg-red-600'
+            }`}></span>
+            {isConnected ? 'Συνδεδεμένο' : 'Μη συνδεδεμένο'}
+          </span>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6 mb-6">
+        <h3 className="font-semibold text-lg mb-4">Ρυθμίσεις Συγχρονισμού</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="flex items-center space-x-2 mb-4">
+              <input
+                type="checkbox"
+                name="autoSync"
+                checked={syncSettings.autoSync}
+                onChange={handleSettingsChange}
+                className="rounded text-blue-600 focus:ring-blue-500"
+                disabled={!isConnected}
+              />
+              <span>Αυτόματος συγχρονισμός</span>
+            </label>
+          </div>
+
+          {syncSettings.autoSync && (
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Διάστημα συγχρονισμού (λεπτά)
+              </label>
+              <input
+                type="number"
+                name="syncInterval"
+                value={syncSettings.syncInterval}
+                onChange={handleSettingsChange}
+                min="15"
+                className="w-full p-2 border rounded"
+                disabled={!isConnected}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+          <div>
+            <p className="text-sm text-gray-600">
+              Τελευταίος συγχρονισμός: <span className="font-medium">{formatDate(lastSyncDate)}</span>
+            </p>
+
+            {lastSyncDate && (
+              <p className="text-sm text-gray-600 mt-1">
+                Στατιστικά: {syncStats.totalProperties} συνολικά, {syncStats.newProperties} νέα, {syncStats.updatedProperties} ενημερώθηκαν
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={syncProperties}
+            disabled={isSyncing || !isConnected}
+            className={`mt-4 sm:mt-0 px-4 py-2 rounded text-white ${
+              isSyncing || !isConnected ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+            } transition flex items-center`}
+          >
+            {isSyncing ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Συγχρονισμός...
+              </>
+            ) : (
+              <>Συγχρονισμός Τώρα</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ApiConfigurationComponent;

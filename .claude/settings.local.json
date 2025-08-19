@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.realtyiq.gr)",
+      "Bash(true)",
+      "Bash(pkill:*)"
+    ],
+    "deny": []
+  }
+}
