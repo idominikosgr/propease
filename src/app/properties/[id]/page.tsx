@@ -260,7 +260,7 @@ export default function PropertyDetailsPage() {
                         <button
                           key={image.id}
                           onClick={() => setCurrentImageIndex(index)}
-                          className={`relative flex-shrink-0 w-20 h-16 rounded-md overflow-hidden border-2 transition-colors ${
+                          className={`relative shrink-0 w-20 h-16 rounded-md overflow-hidden border-2 transition-colors ${
                             index === currentImageIndex
                               ? 'border-primary'
                               : 'border-transparent hover:border-muted-foreground'

@@ -486,7 +486,7 @@ export default function GoldenVisaPage() {
                   <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                        <div className="shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
                           {step.step}
                         </div>
                         <div className="flex-1">

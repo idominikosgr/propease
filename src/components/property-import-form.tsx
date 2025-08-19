@@ -735,7 +735,7 @@ export function PropertyImportForm({ onSuccess, onCancel }: PropertyImportFormPr
         {PROPERTY_FIELDS.map((field) => (
           <div key={field.id} className="space-y-2">
             <div className="flex items-center">
-              <Label className="flex-grow">
+              <Label className="grow">
                 {field.name} {field.required && <span className="text-red-500">*</span>}
               </Label>
               <TooltipProvider>

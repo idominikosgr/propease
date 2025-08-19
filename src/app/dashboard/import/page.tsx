@@ -262,7 +262,7 @@ export default function ImportCenterPage() {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Clean Your Data First</p>
                     <p className="text-sm text-muted-foreground">
@@ -271,7 +271,7 @@ export default function ImportCenterPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Test with Small Batches</p>
                     <p className="text-sm text-muted-foreground">
@@ -280,7 +280,7 @@ export default function ImportCenterPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Use Standard Formats</p>
                     <p className="text-sm text-muted-foreground">
@@ -290,7 +290,7 @@ export default function ImportCenterPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Backup Your Data</p>
                     <p className="text-sm text-muted-foreground">
@@ -309,7 +309,7 @@ export default function ImportCenterPage() {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Greek Characters Not Displaying</p>
                     <p className="text-sm text-muted-foreground">
@@ -318,7 +318,7 @@ export default function ImportCenterPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Price Formatting Issues</p>
                     <p className="text-sm text-muted-foreground">
@@ -328,7 +328,7 @@ export default function ImportCenterPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Column Mapping Errors</p>
                     <p className="text-sm text-muted-foreground">
