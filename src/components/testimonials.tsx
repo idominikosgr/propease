@@ -46,6 +46,7 @@ const Testimonials = () => {
                             src={testimonial.image}
                             alt={testimonial.author}
                             fill
+                            sizes="48px"
                             className="object-cover"
                           />
                         </div>

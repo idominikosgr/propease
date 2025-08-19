@@ -416,16 +416,23 @@ export default function SyncHubPage() {
               <CardDescription>Manually trigger a sync with iList CRM</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="authToken">iList Auth Token</Label>
-                <Input
-                  id="authToken"
-                  type="password"
-                  placeholder="Enter your iList authentication token"
-                  value={authToken}
-                  onChange={(e) => setAuthToken(e.target.value)}
-                />
-              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  testConnection()
+                }}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="authToken">iList Auth Token</Label>
+                  <Input
+                    id="authToken"
+                    type="password"
+                    placeholder="Enter your iList authentication token"
+                    value={authToken}
+                    onChange={(e) => setAuthToken(e.target.value)}
+                  />
+                </div>
+              </form>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

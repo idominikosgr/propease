@@ -2,6 +2,7 @@ import { Facebook, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import AnimationContainer from './global/animation-container'
+import Icons from './global/icons'
 import Wrapper from './global/wrapper'
 
 const SERVICES_LINKS = [
@@ -47,7 +48,7 @@ const Footer = () => {
           <AnimationContainer animation="fadeRight" delay={0.4}>
             <div className="flex flex-col items-start justify-start md:max-w-[300px]">
               <div className="flex items-center gap-2">
-                <Image src="/icons/icon.svg" alt="realtyiq" width={32} height={32} />
+                <Icons.icon variant="dark" className="w-8 h-8" />
                 <span className="text-lg lg:text-xl font-medium">RealtyIQ</span>
               </div>
               <p className="text-muted-foreground mt-4 text-sm">

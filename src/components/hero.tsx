@@ -103,6 +103,7 @@ const Hero = () => {
                   sizes="1000px"
                   width={1024}
                   height={1024}
+                  priority
                   className="object-contain min-w-full h-auto rounded-xl lg:rounded-2xl"
                 />
               </div>

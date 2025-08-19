@@ -406,7 +406,7 @@ export default function AdminPage() {
                         <TableRow key={userData.userId}>
                           <TableCell>
                             <div>
-                              <p className="font-medium">
+                              <div className="font-medium">
                                 {userData.firstName || userData.lastName
                                   ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim()
                                   : 'Unknown User'}
@@ -415,7 +415,7 @@ export default function AdminPage() {
                                     You
                                   </Badge>
                                 )}
-                              </p>
+                              </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Mail className="h-3 w-3" />
                                 {userData.email || 'No email'}

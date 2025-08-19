@@ -67,7 +67,8 @@ const Navbar = () => {
             transition={{ duration: 0.2 }}
           >
             <Link href="/" className="flex items-center gap-2">
-              <Icons.logo className="w-max h-6 -mt-1" />
+              <Icons.logo variant="dark" className="h-6 w-auto -mt-1" />
+              <span className="text-lg font-semibold">RealtyIQ</span>
             </Link>
           </motion.div>
 
@@ -128,8 +129,9 @@ const Navbar = () => {
         <Wrapper className="flex items-center justify-between lg:px-4">
           <div className="flex items-center justify-between gap-x-4 w-full">
             <AnimationContainer animation="fadeRight" delay={0.1}>
-              <Link href="/">
-                <Icons.icon className="w-max h-6" />
+              <Link href="/" className="flex items-center gap-2">
+                <Icons.icon variant="dark" className="h-6 w-auto" />
+                <span className="text-lg font-semibold">RealtyIQ</span>
               </Link>
             </AnimationContainer>
 
