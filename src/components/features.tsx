@@ -1,8 +1,8 @@
-import { FEATURES } from "@/constants";
-import Image from "next/image";
-import AnimationContainer from "./global/animation-container";
-import Wrapper from "./global/wrapper";
-import SectionBadge from "./ui/section-badge";
+import { FEATURES } from '@/constants'
+import Image from 'next/image'
+import AnimationContainer from './global/animation-container'
+import Wrapper from './global/wrapper'
+import SectionBadge from './ui/section-badge'
 
 const Features = () => {
   return (
@@ -20,8 +20,8 @@ const Features = () => {
 
         <AnimationContainer animation="fadeUp" delay={0.4}>
           <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Experience the future of real estate with our all-in-one platform
-            for seamless property management.
+            Experience the future of real estate with our all-in-one platform for seamless property
+            management.
           </p>
         </AnimationContainer>
       </div>
@@ -33,9 +33,7 @@ const Features = () => {
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <AnimationContainer animation="fadeUp" delay={0.6}>
                   <div className="space-y-4">
-                    <h3 className="text-xl md:text-2xl font-medium">
-                      {FEATURES[0].title}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-medium">{FEATURES[0].title}</h3>
                     <p className="text-sm md:text-base text-muted-foreground max-w-md">
                       {FEATURES[0].description}
                     </p>
@@ -60,9 +58,7 @@ const Features = () => {
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <AnimationContainer animation="fadeUp" delay={0.7}>
                   <div className="space-y-4">
-                    <h3 className="text-xl md:text-2xl font-medium">
-                      {FEATURES[1].title}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-medium">{FEATURES[1].title}</h3>
                     <p className="text-sm md:text-base text-muted-foreground max-w-md">
                       {FEATURES[1].description}
                     </p>
@@ -89,9 +85,7 @@ const Features = () => {
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <AnimationContainer animation="fadeUp" delay={0.8}>
                   <div className="space-y-4">
-                    <h3 className="text-xl md:text-2xl font-medium">
-                      {FEATURES[2].title}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-medium">{FEATURES[2].title}</h3>
                     <p className="text-sm md:text-base text-muted-foreground max-w-md">
                       {FEATURES[2].description}
                     </p>
@@ -116,9 +110,7 @@ const Features = () => {
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <AnimationContainer animation="fadeUp" delay={0.9}>
                   <div className="space-y-4">
-                    <h3 className="text-xl md:text-2xl font-medium">
-                      {FEATURES[3].title}
-                    </h3>
+                    <h3 className="text-xl md:text-2xl font-medium">{FEATURES[3].title}</h3>
                     <p className="text-sm md:text-base text-muted-foreground max-w-md">
                       {FEATURES[3].description}
                     </p>
@@ -140,7 +132,7 @@ const Features = () => {
         </div>
       </div>
     </Wrapper>
-  );
-};
+  )
+}
 
-export default Features;
+export default Features

@@ -3,32 +3,32 @@
  * Configure webhook endpoints for real-time sync
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseService } from "@/lib/supabase-service";
+import { type NextRequest, NextResponse } from 'next/server'
+import { createSupabaseService } from '@/lib/supabase-service'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json()
     const {
       authToken,
       webhookUrl,
       events = [
-        "property.created",
-        "property.updated",
-        "property.deleted",
-        "property.status_changed",
+        'property.created',
+        'property.updated',
+        'property.deleted',
+        'property.status_changed',
       ],
       secret,
-    } = body;
+    } = body
 
-    if (!authToken || !webhookUrl) {
+    if (!(authToken && webhookUrl)) {
       return NextResponse.json(
-        { error: "Auth token and webhook URL are required" },
-        { status: 400 },
-      );
+        { error: 'Auth token and webhook URL are required' },
+        { status: 400 }
+      )
     }
 
     // TODO: Register webhook with iList API (if they support webhook registration)
@@ -41,74 +41,68 @@ export async function POST(request: NextRequest) {
     // }
 
     // For now, we'll just save the configuration
-    const supabaseService = createSupabaseService(
-      supabaseUrl,
-      supabaseServiceKey,
-    );
+    const supabaseService = createSupabaseService(supabaseUrl, supabaseServiceKey)
 
     // Save webhook configuration (extend ilist_config table or create new webhook_config table)
     await supabaseService.updateIListConfig({
       auth_token: authToken,
       // Add webhook-specific fields if needed
-    });
+    })
 
     return NextResponse.json({
       success: true,
-      message: "Webhook configuration saved",
+      message: 'Webhook configuration saved',
       webhookUrl,
       events,
-      note: "Manual webhook registration with iList may be required",
-    });
+      note: 'Manual webhook registration with iList may be required',
+    })
   } catch (error) {
-    console.error("Webhook configuration error:", error);
+    console.error('Webhook configuration error:', error)
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to configure webhook",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to configure webhook',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 },
-    );
+      { status: 500 }
+    )
   }
 }
 
 export async function GET() {
   try {
-    const baseUrl =
-      process.env.NEXTAUTH_URL ||
-      process.env.VERCEL_URL ||
-      "http://localhost:3000";
-    const webhookUrl = `${baseUrl}/api/webhooks/ilist`;
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const webhookUrl = `${baseUrl}/api/webhooks/ilist`
 
     return NextResponse.json({
       success: true,
       webhookUrl,
       supportedEvents: [
-        "property.created",
-        "property.updated",
-        "property.deleted",
-        "property.status_changed",
+        'property.created',
+        'property.updated',
+        'property.deleted',
+        'property.status_changed',
       ],
       instructions: {
         endpoint: webhookUrl,
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "x-webhook-secret": "your-webhook-secret",
+          'Content-Type': 'application/json',
+          'x-webhook-secret': 'your-webhook-secret',
         },
-        note: "Configure this webhook URL in your iList CRM settings for real-time sync",
+        note: 'Configure this webhook URL in your iList CRM settings for real-time sync',
       },
-    });
+    })
   } catch (error) {
-    console.error("Error getting webhook config:", error);
+    console.error('Error getting webhook config:', error)
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to get webhook configuration",
+        error: 'Failed to get webhook configuration',
       },
-      { status: 500 },
-    );
+      { status: 500 }
+    )
   }
 }

@@ -1,4 +1,4 @@
-export type Language = 'en' | 'el';
+export type Language = 'en' | 'el'
 
 export const translations = {
   en: {
@@ -11,19 +11,20 @@ export const translations = {
       dashboard: 'Dashboard',
       getStarted: 'Get Started',
       signIn: 'Sign In',
-      signUp: 'Sign Up'
+      signUp: 'Sign Up',
     },
     // Hero Section
     hero: {
       badge: 'Serving Athens & Greater Area Since 2020',
       title: 'Find Your Ideal Property in Greece',
-      description: 'Expert real estate services in Athens and surrounding areas. From property search to Golden Visa assistance, we help you navigate the Greek property market with confidence.',
+      description:
+        'Expert real estate services in Athens and surrounding areas. From property search to Golden Visa assistance, we help you navigate the Greek property market with confidence.',
       browseProperties: 'Browse Properties',
       goldenVisaProgram: '⭐ Golden Visa Program',
       callPhone: 'Call (+30) 210 3000 356',
       investment: 'From €250K investment',
       residency: 'EU Residency',
-      processing: '40-60 days'
+      processing: '40-60 days',
     },
     // Properties Page
     properties: {
@@ -51,12 +52,13 @@ export const translations = {
       viewDetails: 'View Details',
       builtIn: 'Built in',
       rooms: 'rooms',
-      bathrooms: 'bathrooms'
+      bathrooms: 'bathrooms',
     },
     // Golden Visa
     goldenVisa: {
       title: 'Greek Golden Visa',
-      subtitle: 'Secure EU residency through strategic real estate investment in Greece. From €250,000 investment, gain permanent residency for your entire family.',
+      subtitle:
+        'Secure EU residency through strategic real estate investment in Greece. From €250,000 investment, gain permanent residency for your entire family.',
       processing: '40-60 Day Processing',
       familyIncluded: 'Entire Family Included',
       euTravel: 'EU Travel Freedom',
@@ -76,7 +78,7 @@ export const translations = {
       annualROI: 'Annual ROI',
       breakEven: 'Break-even',
       viewGoldenVisaProperties: 'View Golden Visa Properties',
-      requestConsultation: 'Request Free Consultation'
+      requestConsultation: 'Request Free Consultation',
     },
     // Common
     common: {
@@ -100,8 +102,8 @@ export const translations = {
       price: 'Price',
       location: 'Location',
       size: 'Size',
-      energy: 'Energy'
-    }
+      energy: 'Energy',
+    },
   },
   el: {
     // Navigation
@@ -113,19 +115,20 @@ export const translations = {
       dashboard: 'Πίνακας Ελέγχου',
       getStarted: 'Ξεκινήστε',
       signIn: 'Σύνδεση',
-      signUp: 'Εγγραφή'
+      signUp: 'Εγγραφή',
     },
     // Hero Section
     hero: {
       badge: 'Εξυπηρετούμε την Αθήνα & την Ευρύτερη Περιοχή από το 2020',
       title: 'Βρείτε το Ιδανικό σας Ακίνητο στην Ελλάδα',
-      description: 'Εξειδικευμένες υπηρεσίες ακινήτων στην Αθήνα και τις γύρω περιοχές. Από αναζήτηση ακινήτων έως υποστήριξη Golden Visa, σας βοηθάμε να πλοηγηθείτε στην ελληνική αγορά ακινήτων με εμπιστοσύνη.',
+      description:
+        'Εξειδικευμένες υπηρεσίες ακινήτων στην Αθήνα και τις γύρω περιοχές. Από αναζήτηση ακινήτων έως υποστήριξη Golden Visa, σας βοηθάμε να πλοηγηθείτε στην ελληνική αγορά ακινήτων με εμπιστοσύνη.',
       browseProperties: 'Περιήγηση Ακινήτων',
       goldenVisaProgram: '⭐ Πρόγραμμα Golden Visa',
       callPhone: 'Κλήση (+30) 210 3000 356',
       investment: 'Από επένδυση €250K',
       residency: 'Διαμονή ΕΕ',
-      processing: '40-60 ημέρες'
+      processing: '40-60 ημέρες',
     },
     // Properties Page
     properties: {
@@ -147,18 +150,20 @@ export const translations = {
       applyFilters: 'Εφαρμογή Φίλτρων',
       clearAll: 'Καθαρισμός Όλων',
       noPropertiesFound: 'Δεν Βρέθηκαν Ακίνητα',
-      adjustCriteria: 'Δοκιμάστε να προσαρμόσετε τα κριτήρια αναζήτησής σας ή περιηγηθείτε σε όλα τα διαθέσιμα ακίνητα.',
+      adjustCriteria:
+        'Δοκιμάστε να προσαρμόσετε τα κριτήρια αναζήτησής σας ή περιηγηθείτε σε όλα τα διαθέσιμα ακίνητα.',
       clearFilters: 'Καθαρισμός Φίλτρων',
       loadMore: 'Φόρτωση Περισσότερων',
       viewDetails: 'Προβολή Λεπτομερειών',
       builtIn: 'Κατασκευασμένο το',
       rooms: 'δωμάτια',
-      bathrooms: 'μπάνια'
+      bathrooms: 'μπάνια',
     },
     // Golden Visa
     goldenVisa: {
       title: 'Ελληνική Golden Visa',
-      subtitle: 'Εξασφαλίστε διαμονή στην ΕΕ μέσω στρατηγικής επένδυσης σε ακίνητα στην Ελλάδα. Από επένδυση €250.000, αποκτήστε μόνιμη διαμονή για όλη την οικογένειά σας.',
+      subtitle:
+        'Εξασφαλίστε διαμονή στην ΕΕ μέσω στρατηγικής επένδυσης σε ακίνητα στην Ελλάδα. Από επένδυση €250.000, αποκτήστε μόνιμη διαμονή για όλη την οικογένειά σας.',
       processing: 'Επεξεργασία 40-60 Ημερών',
       familyIncluded: 'Συμπεριλαμβάνεται Όλη η Οικογένεια',
       euTravel: 'Ελευθερία Ταξιδιών ΕΕ',
@@ -178,7 +183,7 @@ export const translations = {
       annualROI: 'Ετήσια Απόδοση',
       breakEven: 'Ισοσκέλιση',
       viewGoldenVisaProperties: 'Προβολή Ακινήτων Golden Visa',
-      requestConsultation: 'Αίτηση Δωρεάν Συμβουλευτικής'
+      requestConsultation: 'Αίτηση Δωρεάν Συμβουλευτικής',
     },
     // Common
     common: {
@@ -202,13 +207,13 @@ export const translations = {
       price: 'Τιμή',
       location: 'Τοποθεσία',
       size: 'Μέγεθος',
-      energy: 'Ενέργεια'
-    }
-  }
-} as const;
+      energy: 'Ενέργεια',
+    },
+  },
+} as const
 
-export type TranslationKey = keyof typeof translations.en;
+export type TranslationKey = keyof typeof translations.en
 
 export function getTranslations(lang: Language) {
-  return translations[lang];
+  return translations[lang]
 }

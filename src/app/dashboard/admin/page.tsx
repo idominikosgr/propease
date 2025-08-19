@@ -1,44 +1,44 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Users, 
-  Shield, 
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Users,
+  Shield,
   ShieldCheck,
   UserCheck,
   UserX,
-  Search, 
-  Filter, 
+  Search,
+  Filter,
   RefreshCw,
   Settings,
   Crown,
@@ -50,156 +50,172 @@ import {
   Activity,
   Database,
   BarChart3,
-  Zap
-} from "lucide-react";
-import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+  Zap,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface UserWithRole {
-  userId: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  role: "admin" | "agent" | "user";
-  createdAt: string;
+  userId: string
+  email?: string
+  firstName?: string
+  lastName?: string
+  role: 'admin' | 'agent' | 'user'
+  createdAt: string
 }
 
 export default function AdminPage() {
-  const { user } = useUser();
-  const [users, setUsers] = useState<UserWithRole[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [updating, setUpdating] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [showRoleDialog, setShowRoleDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
-  const [newRole, setNewRole] = useState<string>("");
+  const { user } = useUser()
+  const [users, setUsers] = useState<UserWithRole[]>([])
+  const [loading, setLoading] = useState(false)
+  const [updating, setUpdating] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [showRoleDialog, setShowRoleDialog] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null)
+  const [newRole, setNewRole] = useState<string>('')
 
   // Check user role
-  const userRole = user?.publicMetadata?.role as string;
-  const isAdmin = userRole === "admin";
+  const userRole = user?.publicMetadata?.role as string
+  const isAdmin = userRole === 'admin'
 
   // Fetch all users
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const response = await fetch("/api/admin/users");
-      const data = await response.json();
+      const response = await fetch('/api/admin/users')
+      const data = await response.json()
 
       if (data.success) {
-        setUsers(data.users || []);
+        setUsers(data.users || [])
       } else {
-        toast.error("Failed to fetch users");
-        console.error("Users fetch error:", data.error);
+        toast.error('Failed to fetch users')
+        console.error('Users fetch error:', data.error)
       }
     } catch (error) {
-      toast.error("Failed to fetch users");
-      console.error("Users fetch error:", error);
+      toast.error('Failed to fetch users')
+      console.error('Users fetch error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Update user role
   const updateUserRole = async () => {
-    if (!selectedUser || !newRole) return;
+    if (!(selectedUser && newRole)) return
 
-    setUpdating(selectedUser.userId);
+    setUpdating(selectedUser.userId)
     try {
-      const response = await fetch("/api/admin/users", {
-        method: "PUT",
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userId: selectedUser.userId,
           role: newRole,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success) {
-        toast.success(`User role updated to ${newRole}`);
-        setShowRoleDialog(false);
-        setSelectedUser(null);
-        setNewRole("");
-        fetchUsers(); // Refresh list
+        toast.success(`User role updated to ${newRole}`)
+        setShowRoleDialog(false)
+        setSelectedUser(null)
+        setNewRole('')
+        fetchUsers() // Refresh list
       } else {
-        toast.error("Failed to update user role");
+        toast.error('Failed to update user role')
       }
     } catch (error) {
-      toast.error("Failed to update user role");
-      console.error("Role update error:", error);
+      toast.error('Failed to update user role')
+      console.error('Role update error:', error)
     } finally {
-      setUpdating(null);
+      setUpdating(null)
     }
-  };
+  }
 
   // Open role dialog
   const openRoleDialog = (user: UserWithRole) => {
-    setSelectedUser(user);
-    setNewRole(user.role);
-    setShowRoleDialog(true);
-  };
+    setSelectedUser(user)
+    setNewRole(user.role)
+    setShowRoleDialog(true)
+  }
 
   // Filter users
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchTerm || 
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      !searchTerm ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.userId.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
-  });
+      user.userId.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter
+
+    return matchesSearch && matchesRole
+  })
 
   // Calculate user statistics
   const userStats = {
     total: users.length,
-    admins: users.filter(u => u.role === "admin").length,
-    agents: users.filter(u => u.role === "agent").length,
-    regularUsers: users.filter(u => u.role === "user").length,
-    recentUsers: users.filter(u => {
-      const userDate = new Date(u.createdAt);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return userDate > weekAgo;
+    admins: users.filter((u) => u.role === 'admin').length,
+    agents: users.filter((u) => u.role === 'agent').length,
+    regularUsers: users.filter((u) => u.role === 'user').length,
+    recentUsers: users.filter((u) => {
+      const userDate = new Date(u.createdAt)
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      return userDate > weekAgo
     }).length,
-  };
+  }
 
   useEffect(() => {
     if (isAdmin) {
-      fetchUsers();
+      fetchUsers()
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin])
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      admin: { variant: "default" as const, icon: Crown, color: "bg-red-100 text-red-800", label: "Admin" },
-      agent: { variant: "secondary" as const, icon: ShieldCheck, color: "bg-blue-100 text-blue-800", label: "Agent" },
-      user: { variant: "outline" as const, icon: Users, color: "bg-gray-100 text-gray-800", label: "User" }
-    };
+      admin: {
+        variant: 'default' as const,
+        icon: Crown,
+        color: 'bg-red-100 text-red-800',
+        label: 'Admin',
+      },
+      agent: {
+        variant: 'secondary' as const,
+        icon: ShieldCheck,
+        color: 'bg-blue-100 text-blue-800',
+        label: 'Agent',
+      },
+      user: {
+        variant: 'outline' as const,
+        icon: Users,
+        color: 'bg-gray-100 text-gray-800',
+        label: 'User',
+      },
+    }
 
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.user;
-    const Icon = config.icon;
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.user
+    const Icon = config.icon
 
     return (
       <Badge variant={config.variant} className={config.color}>
         <Icon className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
-    );
-  };
+    )
+  }
 
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('en-US', {
       dateStyle: 'medium',
-      timeStyle: 'short'
-    }).format(new Date(dateString));
-  };
+      timeStyle: 'short',
+    }).format(new Date(dateString))
+  }
 
   // Redirect if not admin
   if (!isAdmin) {
@@ -213,7 +229,7 @@ export default function AdminPage() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   return (
@@ -222,9 +238,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground">
-            System administration and user management
-          </p>
+          <p className="text-muted-foreground">System administration and user management</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="destructive" className="bg-red-100 text-red-800">
@@ -260,7 +274,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -272,7 +286,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -284,7 +298,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -296,7 +310,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -339,18 +353,18 @@ export default function AdminPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
-              {(searchTerm || roleFilter !== "all") && (
+
+              {(searchTerm || roleFilter !== 'all') && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
                     Showing {filteredUsers.length} of {users.length} users
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
-                      setSearchTerm("");
-                      setRoleFilter("all");
+                      setSearchTerm('')
+                      setRoleFilter('all')
                     }}
                   >
                     Clear Filters
@@ -364,9 +378,7 @@ export default function AdminPage() {
           <Card>
             <CardHeader>
               <CardTitle>System Users ({filteredUsers.length})</CardTitle>
-              <CardDescription>
-                Manage user roles and permissions
-              </CardDescription>
+              <CardDescription>Manage user roles and permissions</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -376,7 +388,7 @@ export default function AdminPage() {
                 </div>
               ) : filteredUsers.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {users.length === 0 ? "No users found" : "No users match your search criteria"}
+                  {users.length === 0 ? 'No users found' : 'No users match your search criteria'}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -395,26 +407,25 @@ export default function AdminPage() {
                           <TableCell>
                             <div>
                               <p className="font-medium">
-                                {userData.firstName || userData.lastName 
-                                  ? `${userData.firstName || ""} ${userData.lastName || ""}`.trim()
-                                  : "Unknown User"
-                                }
+                                {userData.firstName || userData.lastName
+                                  ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim()
+                                  : 'Unknown User'}
                                 {userData.userId === user?.id && (
-                                  <Badge variant="outline" className="ml-2">You</Badge>
+                                  <Badge variant="outline" className="ml-2">
+                                    You
+                                  </Badge>
                                 )}
                               </p>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Mail className="h-3 w-3" />
-                                {userData.email || "No email"}
+                                {userData.email || 'No email'}
                               </div>
                               <p className="text-xs text-muted-foreground font-mono">
                                 ID: {userData.userId}
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            {getRoleBadge(userData.role)}
-                          </TableCell>
+                          <TableCell>{getRoleBadge(userData.role)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-3 w-3" />
@@ -427,7 +438,9 @@ export default function AdminPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => openRoleDialog(userData)}
-                                disabled={userData.userId === user?.id || updating === userData.userId}
+                                disabled={
+                                  userData.userId === user?.id || updating === userData.userId
+                                }
                               >
                                 {updating === userData.userId ? (
                                   <RefreshCw className="h-4 w-4 animate-spin" />
@@ -436,7 +449,9 @@ export default function AdminPage() {
                                 )}
                               </Button>
                               {userData.userId === user?.id && (
-                                <Badge variant="outline" className="text-xs">Current User</Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  Current User
+                                </Badge>
                               )}
                             </div>
                           </TableCell>
@@ -526,37 +541,43 @@ export default function AdminPage() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm">Admins</span>
-                      <span className="text-sm font-semibold">{Math.round((userStats.admins / userStats.total) * 100)}%</span>
+                      <span className="text-sm font-semibold">
+                        {Math.round((userStats.admins / userStats.total) * 100)}%
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-red-600 h-2 rounded-full" 
+                      <div
+                        className="bg-red-600 h-2 rounded-full"
                         style={{ width: `${(userStats.admins / userStats.total) * 100}%` }}
-                      ></div>
+                      />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm">Agents</span>
-                      <span className="text-sm font-semibold">{Math.round((userStats.agents / userStats.total) * 100)}%</span>
+                      <span className="text-sm font-semibold">
+                        {Math.round((userStats.agents / userStats.total) * 100)}%
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${(userStats.agents / userStats.total) * 100}%` }}
-                      ></div>
+                      />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm">Users</span>
-                      <span className="text-sm font-semibold">{Math.round((userStats.regularUsers / userStats.total) * 100)}%</span>
+                      <span className="text-sm font-semibold">
+                        {Math.round((userStats.regularUsers / userStats.total) * 100)}%
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gray-600 h-2 rounded-full" 
+                      <div
+                        className="bg-gray-600 h-2 rounded-full"
                         style={{ width: `${(userStats.regularUsers / userStats.total) * 100}%` }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -574,9 +595,7 @@ export default function AdminPage() {
                   <Shield className="h-5 w-5" />
                   Role Definitions
                 </CardTitle>
-                <CardDescription>
-                  Understanding system roles and permissions
-                </CardDescription>
+                <CardDescription>Understanding system roles and permissions</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border rounded-lg p-4">
@@ -585,7 +604,8 @@ export default function AdminPage() {
                     <span className="font-semibold text-red-600">Admin</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Full system access: manage users, properties, sync settings, analytics, and all admin functions.
+                    Full system access: manage users, properties, sync settings, analytics, and all
+                    admin functions.
                   </p>
                 </div>
                 <div className="border rounded-lg p-4">
@@ -594,7 +614,8 @@ export default function AdminPage() {
                     <span className="font-semibold text-blue-600">Agent</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Property management: view/manage properties, handle inquiries, import data, and sync with iList.
+                    Property management: view/manage properties, handle inquiries, import data, and
+                    sync with iList.
                   </p>
                 </div>
                 <div className="border rounded-lg p-4">
@@ -603,7 +624,8 @@ export default function AdminPage() {
                     <span className="font-semibold text-gray-600">User</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Basic access: view properties, submit inquiries, and access personal dashboard features.
+                    Basic access: view properties, submit inquiries, and access personal dashboard
+                    features.
                   </p>
                 </div>
               </CardContent>
@@ -624,7 +646,7 @@ export default function AdminPage() {
                     All security measures are active and functioning properly.
                   </AlertDescription>
                 </Alert>
-                
+
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span>Role-based access control</span>
@@ -655,15 +677,14 @@ export default function AdminPage() {
           <DialogHeader>
             <DialogTitle>Update User Role</DialogTitle>
             <DialogDescription>
-              Change the role for {selectedUser?.firstName} {selectedUser?.lastName} ({selectedUser?.email})
+              Change the role for {selectedUser?.firstName} {selectedUser?.lastName} (
+              {selectedUser?.email})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Current Role</Label>
-              <div className="mt-1">
-                {selectedUser && getRoleBadge(selectedUser.role)}
-              </div>
+              <div className="mt-1">{selectedUser && getRoleBadge(selectedUser.role)}</div>
             </div>
 
             <div>
@@ -684,13 +705,14 @@ export default function AdminPage() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Role Change Warning</AlertTitle>
               <AlertDescription>
-                Changing user roles affects their access to system features. Make sure this change is authorized.
+                Changing user roles affects their access to system features. Make sure this change
+                is authorized.
               </AlertDescription>
             </Alert>
 
             <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={updateUserRole} 
+              <Button
+                onClick={updateUserRole}
                 disabled={updating !== null || newRole === selectedUser?.role}
               >
                 {updating ? (
@@ -710,5 +732,5 @@ export default function AdminPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

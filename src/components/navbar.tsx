@@ -1,68 +1,63 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { NAV_LINKS } from "@/constants";
-import { useClickOutside } from "@/hooks";
-import { cn } from "@/lib";
-import { useClerk } from "@clerk/nextjs";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValueEvent,
-  useScroll,
-} from "framer-motion";
-import { MenuIcon, XIcon } from "lucide-react";
-import Link from "next/link";
-import { RefObject, useRef, useState } from "react";
-import AnimationContainer from "./global/animation-container";
-import Icons from "./global/icons";
-import Wrapper from "./global/wrapper";
-import LanguageSwitcher from "./language-switcher";
+import { Button } from '@/components/ui/button'
+import { NAV_LINKS } from '@/constants'
+import { useClickOutside } from '@/hooks'
+import { cn } from '@/lib'
+import { useClerk } from '@clerk/nextjs'
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
+import { MenuIcon, XIcon } from 'lucide-react'
+import Link from 'next/link'
+import { type RefObject, useRef, useState } from 'react'
+import AnimationContainer from './global/animation-container'
+import Icons from './global/icons'
+import Wrapper from './global/wrapper'
+import LanguageSwitcher from './language-switcher'
 
 const Navbar = () => {
-  const { user } = useClerk();
+  const { user } = useClerk()
 
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(false);
-  const [visible, setVisible] = useState<boolean>(false);
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [open, setOpen] = useState(false)
+  const [visible, setVisible] = useState<boolean>(false)
 
   const mobileMenuRef = useClickOutside(() => {
-    if (open) setOpen(false);
-  });
+    if (open) setOpen(false)
+  })
 
   const { scrollY } = useScroll({
     target: ref as RefObject<HTMLDivElement>,
-    offset: ["start start", "end start"],
-  });
+    offset: ['start start', 'end start'],
+  })
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
+  useMotionValueEvent(scrollY, 'change', (latest) => {
     if (latest > 100) {
-      setVisible(true);
+      setVisible(true)
     } else {
-      setVisible(false);
+      setVisible(false)
     }
-  });
+  })
 
   return (
     <header ref={ref} className="fixed w-full top-0 inset-x-0 z-50">
       {/* Desktop */}
       <motion.div
         animate={{
-          width: visible ? "40%" : "100%",
+          width: visible ? '40%' : '100%',
           y: visible ? 20 : 0,
         }}
         transition={{
-          type: "spring",
+          type: 'spring',
           stiffness: 200,
           damping: 40,
         }}
         style={{
-          minWidth: "800px",
+          minWidth: '800px',
         }}
         className={cn(
-          "hidden lg:flex bg-transparent self-start items-center justify-between py-4 rounded-full relative z-50 mx-auto w-full backdrop-blur",
+          'hidden lg:flex bg-transparent self-start items-center justify-between py-4 rounded-full relative z-50 mx-auto w-full backdrop-blur',
           visible &&
-            "bg-background/60 py-2 border border-t-foreground/20 border-b-foreground/10 border-x-foreground/15 w-full",
+            'bg-background/60 py-2 border border-t-foreground/20 border-b-foreground/10 border-x-foreground/15 w-full'
         )}
       >
         <Wrapper className="flex items-center justify-between lg:px-4">
@@ -79,11 +74,7 @@ const Navbar = () => {
           <div className="hidden lg:flex flex-row flex-1 absolute inset-0 items-center justify-center w-max mx-auto gap-x-2 text-sm text-muted-foreground font-medium">
             <AnimatePresence>
               {NAV_LINKS.map((link, index) => (
-                <AnimationContainer
-                  key={index}
-                  animation="fadeDown"
-                  delay={0.1 * index}
-                >
+                <AnimationContainer key={index} animation="fadeDown" delay={0.1 * index}>
                   <div className="relative">
                     <Link
                       href={link.link}
@@ -118,20 +109,20 @@ const Navbar = () => {
       <motion.div
         animate={{
           y: visible ? 20 : 0,
-          borderTopLeftRadius: open ? "0.75rem" : "2rem",
-          borderTopRightRadius: open ? "0.75rem" : "2rem",
-          borderBottomLeftRadius: open ? "0" : "2rem",
-          borderBottomRightRadius: open ? "0" : "2rem",
+          borderTopLeftRadius: open ? '0.75rem' : '2rem',
+          borderTopRightRadius: open ? '0.75rem' : '2rem',
+          borderBottomLeftRadius: open ? '0' : '2rem',
+          borderBottomRightRadius: open ? '0' : '2rem',
         }}
         transition={{
-          type: "spring",
+          type: 'spring',
           stiffness: 200,
           damping: 50,
         }}
         className={cn(
-          "flex relative flex-col lg:hidden w-full justify-between items-center mx-auto py-4 z-50",
-          visible && "bg-neutral-950 w-11/12 border",
-          open && "border-transparent",
+          'flex relative flex-col lg:hidden w-full justify-between items-center mx-auto py-4 z-50',
+          visible && 'bg-neutral-950 w-11/12 border',
+          open && 'border-transparent'
         )}
       >
         <Wrapper className="flex items-center justify-between lg:px-4">
@@ -144,21 +135,15 @@ const Navbar = () => {
 
             <AnimationContainer animation="fadeLeft" delay={0.1}>
               <div className="flex items-center justify-center gap-x-4">
-                  <Button size="sm">
+                <Button size="sm">
                   <Link href="/sign-up" className="flex items-center">
                     Get started
                   </Link>
                 </Button>
                 {open ? (
-                  <XIcon
-                    className="text-black dark:text-white"
-                    onClick={() => setOpen(!open)}
-                  />
+                  <XIcon className="text-black dark:text-white" onClick={() => setOpen(!open)} />
                 ) : (
-                  <MenuIcon
-                    className="text-black dark:text-white"
-                    onClick={() => setOpen(!open)}
-                  />
+                  <MenuIcon className="text-black dark:text-white" onClick={() => setOpen(!open)} />
                 )}
               </div>
             </AnimationContainer>
@@ -190,11 +175,7 @@ const Navbar = () => {
                   </Link>
                 </AnimationContainer>
               ))}
-              <AnimationContainer
-                animation="fadeUp"
-                delay={0.5}
-                className="w-full"
-              >
+              <AnimationContainer animation="fadeUp" delay={0.5} className="w-full">
                 {user ? (
                   <Link href="/dashboard" className="w-full">
                     <Button
@@ -233,7 +214,7 @@ const Navbar = () => {
         </AnimatePresence>
       </motion.div>
     </header>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

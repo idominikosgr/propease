@@ -1,4 +1,4 @@
-import { LucideProps } from "lucide-react";
+import type { LucideProps } from 'lucide-react'
 
 const Images = {
   comp1: (props: LucideProps) => (
@@ -28,10 +28,7 @@ const Images = {
         d="M37.4057 6.42766L42.935 5.23807V0.766113L37.4057 1.93367V6.42766Z"
         fill="currentColor"
       />
-      <path
-        d="M42.935 8.1019H37.4057V27.3776H42.935V8.1019Z"
-        fill="currentColor"
-      />
+      <path d="M42.935 8.1019H37.4057V27.3776H42.935V8.1019Z" fill="currentColor" />
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -155,6 +152,6 @@ const Images = {
       />
     </svg>
   ),
-};
+}
 
-export default Images;
+export default Images

@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { PRICING_PLANS } from "@/constants";
-import { cn } from "@/lib";
-import NumberFlow from "@number-flow/react";
-import { Check, X } from "lucide-react";
-import { useState } from "react";
-import AnimationContainer from "./global/animation-container";
-import Wrapper from "./global/wrapper";
-import { Button } from "./ui/button";
-import SectionBadge from "./ui/section-badge";
+import { PRICING_PLANS } from '@/constants'
+import { cn } from '@/lib'
+import NumberFlow from '@number-flow/react'
+import { Check, X } from 'lucide-react'
+import { useState } from 'react'
+import AnimationContainer from './global/animation-container'
+import Wrapper from './global/wrapper'
+import { Button } from './ui/button'
+import SectionBadge from './ui/section-badge'
 
 const Pricing = () => {
-  const [isYearly, setIsYearly] = useState<boolean>(false);
+  const [isYearly, setIsYearly] = useState<boolean>(false)
 
   return (
     <Wrapper className="py-20 lg:py-32">
@@ -38,8 +38,8 @@ const Pricing = () => {
           <button
             onClick={() => setIsYearly(false)}
             className={cn(
-              "text-sm font-medium transition-colors",
-              !isYearly ? "text-foreground" : "text-muted-foreground",
+              'text-sm font-medium transition-colors',
+              !isYearly ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             Monthly
@@ -50,16 +50,16 @@ const Pricing = () => {
           >
             <div
               className={cn(
-                "h-4 w-4 rounded-full bg-linear-to-b from-primary to-orange-400 transition-transform duration-300",
-                isYearly && "translate-x-5",
+                'h-4 w-4 rounded-full bg-linear-to-b from-primary to-orange-400 transition-transform duration-300',
+                isYearly && 'translate-x-5'
               )}
             />
           </div>
           <button
             onClick={() => setIsYearly(true)}
             className={cn(
-              "text-sm font-medium transition-colors",
-              isYearly ? "text-foreground" : "text-muted-foreground",
+              'text-sm font-medium transition-colors',
+              isYearly ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             Yearly
@@ -69,31 +69,25 @@ const Pricing = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-10">
         {PRICING_PLANS.map((plan, index) => (
-          <AnimationContainer
-            key={index}
-            animation="fadeUp"
-            delay={0.6 + index * 0.2}
-          >
+          <AnimationContainer key={index} animation="fadeUp" delay={0.6 + index * 0.2}>
             <div
               className={cn(
-                "relative rounded-3xl backdrop-blur-3xl p-8 flex flex-col overflow-hidden",
-                plan.popular && "bg-[#181818]",
-                !plan.popular && "bg-linear-to-b from-[#181818] to-[#101010]/0",
+                'relative rounded-3xl backdrop-blur-3xl p-8 flex flex-col overflow-hidden',
+                plan.popular && 'bg-[#181818]',
+                !plan.popular && 'bg-linear-to-b from-[#181818] to-[#101010]/0'
               )}
             >
               {plan.popular && (
                 <>
                   <div className="absolute inset-x-0 mx-auto -top-1/8 size-40 rounded-full bg-primary -z-10 blur-[5rem]" />
-                  <div className="absolute top-0 w-4/5 mx-auto inset-x-0 h-px bg-linear-to-r from-primary/0 via-primary to-primary/0"></div>
+                  <div className="absolute top-0 w-4/5 mx-auto inset-x-0 h-px bg-linear-to-r from-primary/0 via-primary to-primary/0" />
                 </>
               )}
 
               <AnimationContainer animation="fadeUp" delay={0.7 + index * 0.2}>
                 <div className="mb-8">
                   <h3 className="text-xl font-medium mb-2">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {plan.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{plan.description}</p>
                 </div>
               </AnimationContainer>
 
@@ -101,27 +95,17 @@ const Pricing = () => {
                 <div className="flex items-baseline gap-2 mb-8">
                   <span className="text-4xl font-medium">$</span>
                   <span className="text-5xl font-medium">
-                    <NumberFlow
-                      value={isYearly ? plan.price.yearly : plan.price.monthly}
-                    />
+                    <NumberFlow value={isYearly ? plan.price.yearly : plan.price.monthly} />
                   </span>
-                  <span className="text-muted-foreground">
-                    /{isYearly ? "year" : "month"}
-                  </span>
+                  <span className="text-muted-foreground">/{isYearly ? 'year' : 'month'}</span>
                 </div>
               </AnimationContainer>
 
               <div className="flex-1">
-                <AnimationContainer
-                  animation="fadeUp"
-                  delay={0.9 + index * 0.2}
-                >
+                <AnimationContainer animation="fadeUp" delay={0.9 + index * 0.2}>
                   <ul className="space-y-4 mb-8">
                     {plan.features.map((feature, featureIndex) => (
-                      <li
-                        key={featureIndex}
-                        className="flex items-center gap-3"
-                      >
+                      <li key={featureIndex} className="flex items-center gap-3">
                         {feature.included ? (
                           <Check className="w-5 h-5 text-primary" />
                         ) : (
@@ -129,10 +113,8 @@ const Pricing = () => {
                         )}
                         <span
                           className={cn(
-                            "text-sm",
-                            feature.included
-                              ? "text-foreground"
-                              : "text-muted-foreground",
+                            'text-sm',
+                            feature.included ? 'text-foreground' : 'text-muted-foreground'
                           )}
                         >
                           {feature.text}
@@ -144,10 +126,7 @@ const Pricing = () => {
               </div>
 
               <AnimationContainer animation="fadeUp" delay={1 + index * 0.2}>
-                <Button
-                  variant={plan.popular ? "default" : "secondary"}
-                  className="w-full"
-                >
+                <Button variant={plan.popular ? 'default' : 'secondary'} className="w-full">
                   Get Started
                 </Button>
               </AnimationContainer>
@@ -156,7 +135,7 @@ const Pricing = () => {
         ))}
       </div>
     </Wrapper>
-  );
-};
+  )
+}
 
-export default Pricing;
+export default Pricing

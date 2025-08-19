@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  StarIcon, 
-  EuroIcon, 
-  CalculatorIcon, 
-  CheckIcon, 
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  StarIcon,
+  EuroIcon,
+  CalculatorIcon,
+  CheckIcon,
   ClockIcon,
   UsersIcon,
   MapPinIcon,
@@ -21,186 +21,186 @@ import {
   ShieldIcon,
   HomeIcon,
   FileTextIcon,
-  InfoIcon
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import LeadGenerationForm from "@/components/lead-generation-form";
+  InfoIcon,
+} from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import LeadGenerationForm from '@/components/lead-generation-form'
 
 interface GoldenVisaCalculation {
-  investmentAmount: number;
-  propertyType: "residential" | "commercial" | "mixed";
-  rentalYield: number;
-  annualRental: number;
-  managementFees: number;
-  taxes: number;
-  netAnnualReturn: number;
-  roiPercentage: number;
-  breakEvenYears: number;
+  investmentAmount: number
+  propertyType: 'residential' | 'commercial' | 'mixed'
+  rentalYield: number
+  annualRental: number
+  managementFees: number
+  taxes: number
+  netAnnualReturn: number
+  roiPercentage: number
+  breakEvenYears: number
 }
 
 const PROPERTY_TYPES = [
-  { value: "residential", label: "Residential", yield: 4.5 },
-  { value: "commercial", label: "Commercial", yield: 6.0 },
-  { value: "mixed", label: "Mixed Use", yield: 5.2 }
-];
+  { value: 'residential', label: 'Residential', yield: 4.5 },
+  { value: 'commercial', label: 'Commercial', yield: 6.0 },
+  { value: 'mixed', label: 'Mixed Use', yield: 5.2 },
+]
 
 const GOLDEN_VISA_BENEFITS = [
   {
     icon: MapPinIcon,
-    title: "EU Travel Freedom",
-    description: "Visa-free travel to all 27 EU countries and Schengen area"
+    title: 'EU Travel Freedom',
+    description: 'Visa-free travel to all 27 EU countries and Schengen area',
   },
   {
     icon: HomeIcon,
-    title: "Permanent Residency",
-    description: "Renewable 5-year residency permits for you and your family"
+    title: 'Permanent Residency',
+    description: 'Renewable 5-year residency permits for you and your family',
   },
   {
     icon: TrendingUpIcon,
-    title: "Investment Returns",
-    description: "Generate rental income from your Greek property investment"
+    title: 'Investment Returns',
+    description: 'Generate rental income from your Greek property investment',
   },
   {
     icon: ShieldIcon,
-    title: "EU Security",
-    description: "Access to EU healthcare, education, and social systems"
+    title: 'EU Security',
+    description: 'Access to EU healthcare, education, and social systems',
   },
   {
     icon: UsersIcon,
-    title: "Family Inclusion",
-    description: "Include spouse, children under 21, and parents in application"
+    title: 'Family Inclusion',
+    description: 'Include spouse, children under 21, and parents in application',
   },
   {
     icon: ClockIcon,
-    title: "Fast Processing",
-    description: "Application processed in 40-60 days with proper documentation"
-  }
-];
+    title: 'Fast Processing',
+    description: 'Application processed in 40-60 days with proper documentation',
+  },
+]
 
 const PROCESS_STEPS = [
   {
     step: 1,
-    title: "Property Selection",
-    description: "Choose qualifying property worth minimum €250,000",
-    duration: "1-2 weeks"
+    title: 'Property Selection',
+    description: 'Choose qualifying property worth minimum €250,000',
+    duration: '1-2 weeks',
   },
   {
     step: 2,
-    title: "Legal Documentation",
-    description: "Prepare all required documents and legal paperwork",
-    duration: "2-3 weeks"
+    title: 'Legal Documentation',
+    description: 'Prepare all required documents and legal paperwork',
+    duration: '2-3 weeks',
   },
   {
     step: 3,
-    title: "Property Purchase",
-    description: "Complete property transaction with legal representation",
-    duration: "1-2 weeks"
+    title: 'Property Purchase',
+    description: 'Complete property transaction with legal representation',
+    duration: '1-2 weeks',
   },
   {
     step: 4,
-    title: "Visa Application",
-    description: "Submit Golden Visa application with all documentation",
-    duration: "1 week"
+    title: 'Visa Application',
+    description: 'Submit Golden Visa application with all documentation',
+    duration: '1 week',
   },
   {
     step: 5,
-    title: "Approval & Collection",
-    description: "Receive approval and collect residency permits",
-    duration: "6-8 weeks"
-  }
-];
+    title: 'Approval & Collection',
+    description: 'Receive approval and collect residency permits',
+    duration: '6-8 weeks',
+  },
+]
 
 export default function GoldenVisaPage() {
   const [calculation, setCalculation] = useState<GoldenVisaCalculation>({
     investmentAmount: 250000,
-    propertyType: "residential",
+    propertyType: 'residential',
     rentalYield: 4.5,
     annualRental: 0,
     managementFees: 0,
     taxes: 0,
     netAnnualReturn: 0,
     roiPercentage: 0,
-    breakEvenYears: 0
-  });
+    breakEvenYears: 0,
+  })
 
   const [contactForm, setContactForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    nationality: "",
-    investmentBudget: "",
-    message: ""
-  });
+    name: '',
+    email: '',
+    phone: '',
+    nationality: '',
+    investmentBudget: '',
+    message: '',
+  })
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const calculateReturns = () => {
-    const { investmentAmount, rentalYield } = calculation;
-    const annualRental = (investmentAmount * rentalYield) / 100;
-    const managementFees = annualRental * 0.1; // 10% management fees
-    const taxes = annualRental * 0.15; // 15% taxes (simplified)
-    const netAnnualReturn = annualRental - managementFees - taxes;
-    const roiPercentage = (netAnnualReturn / investmentAmount) * 100;
-    const breakEvenYears = investmentAmount / netAnnualReturn;
+    const { investmentAmount, rentalYield } = calculation
+    const annualRental = (investmentAmount * rentalYield) / 100
+    const managementFees = annualRental * 0.1 // 10% management fees
+    const taxes = annualRental * 0.15 // 15% taxes (simplified)
+    const netAnnualReturn = annualRental - managementFees - taxes
+    const roiPercentage = (netAnnualReturn / investmentAmount) * 100
+    const breakEvenYears = investmentAmount / netAnnualReturn
 
-    setCalculation(prev => ({
+    setCalculation((prev) => ({
       ...prev,
       annualRental,
       managementFees,
       taxes,
       netAnnualReturn,
       roiPercentage,
-      breakEvenYears
-    }));
-  };
+      breakEvenYears,
+    }))
+  }
 
   useEffect(() => {
-    calculateReturns();
-  }, [calculation.investmentAmount, calculation.rentalYield]);
+    calculateReturns()
+  }, [calculation.investmentAmount, calculation.rentalYield])
 
-  const handlePropertyTypeChange = (type: "residential" | "commercial" | "mixed") => {
-    const selectedType = PROPERTY_TYPES.find(t => t.value === type);
-    setCalculation(prev => ({
+  const handlePropertyTypeChange = (type: 'residential' | 'commercial' | 'mixed') => {
+    const selectedType = PROPERTY_TYPES.find((t) => t.value === type)
+    setCalculation((prev) => ({
       ...prev,
       propertyType: type,
-      rentalYield: selectedType?.yield || 4.5
-    }));
-  };
+      rentalYield: selectedType?.yield || 4.5,
+    }))
+  }
 
   const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
+    e.preventDefault()
+    setIsSubmitting(true)
+
     try {
       // Here you would send the contact form data to your API
-      console.log("Golden Visa inquiry:", contactForm);
+      console.log('Golden Visa inquiry:', contactForm)
       // Reset form after successful submission
       setContactForm({
-        name: "",
-        email: "",
-        phone: "",
-        nationality: "",
-        investmentBudget: "",
-        message: ""
-      });
-      alert("Thank you for your inquiry! We'll contact you within 24 hours.");
+        name: '',
+        email: '',
+        phone: '',
+        nationality: '',
+        investmentBudget: '',
+        message: '',
+      })
+      alert("Thank you for your inquiry! We'll contact you within 24 hours.")
     } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("There was an error submitting your inquiry. Please try again.");
+      console.error('Error submitting form:', error)
+      alert('There was an error submitting your inquiry. Please try again.')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("el-GR", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('el-GR', {
+      style: 'currency',
+      currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
-  };
+    }).format(amount)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,12 +213,10 @@ export default function GoldenVisaPage() {
               Golden Visa Program
             </Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Greek Golden Visa
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Greek Golden Visa</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-            Secure EU residency through strategic real estate investment in Greece. 
-            From €250,000 investment, gain permanent residency for your entire family.
+            Secure EU residency through strategic real estate investment in Greece. From €250,000
+            investment, gain permanent residency for your entire family.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <Badge variant="outline" className="px-3 py-1">
@@ -264,10 +262,12 @@ export default function GoldenVisaPage() {
                       min="250000"
                       step="10000"
                       value={calculation.investmentAmount}
-                      onChange={(e) => setCalculation(prev => ({
-                        ...prev,
-                        investmentAmount: Number(e.target.value)
-                      }))}
+                      onChange={(e) =>
+                        setCalculation((prev) => ({
+                          ...prev,
+                          investmentAmount: Number(e.target.value),
+                        }))
+                      }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Minimum €250,000 required for Golden Visa eligibility
@@ -280,9 +280,13 @@ export default function GoldenVisaPage() {
                       {PROPERTY_TYPES.map((type) => (
                         <Button
                           key={type.value}
-                          variant={calculation.propertyType === type.value ? "default" : "outline"}
+                          variant={calculation.propertyType === type.value ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => handlePropertyTypeChange(type.value as "residential" | "commercial" | "mixed")}
+                          onClick={() =>
+                            handlePropertyTypeChange(
+                              type.value as 'residential' | 'commercial' | 'mixed'
+                            )
+                          }
                         >
                           {type.label}
                         </Button>
@@ -299,10 +303,12 @@ export default function GoldenVisaPage() {
                       max="15"
                       step="0.1"
                       value={calculation.rentalYield}
-                      onChange={(e) => setCalculation(prev => ({
-                        ...prev,
-                        rentalYield: Number(e.target.value)
-                      }))}
+                      onChange={(e) =>
+                        setCalculation((prev) => ({
+                          ...prev,
+                          rentalYield: Number(e.target.value),
+                        }))
+                      }
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Average yields: Residential 3-5%, Commercial 5-7%
@@ -312,8 +318,8 @@ export default function GoldenVisaPage() {
                   <Alert>
                     <InfoIcon className="h-4 w-4" />
                     <AlertDescription>
-                      Calculations are estimates based on current market conditions. 
-                      Actual returns may vary based on location, property condition, and market factors.
+                      Calculations are estimates based on current market conditions. Actual returns
+                      may vary based on location, property condition, and market factors.
                     </AlertDescription>
                   </Alert>
                 </CardContent>
@@ -330,17 +336,13 @@ export default function GoldenVisaPage() {
                       <div className="text-2xl font-bold text-primary">
                         {formatCurrency(calculation.annualRental)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Annual Rental Income
-                      </div>
+                      <div className="text-sm text-muted-foreground">Annual Rental Income</div>
                     </div>
                     <div className="text-center p-4 bg-muted rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
                         {formatCurrency(calculation.netAnnualReturn)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Net Annual Return
-                      </div>
+                      <div className="text-sm text-muted-foreground">Net Annual Return</div>
                     </div>
                   </div>
 
@@ -349,7 +351,9 @@ export default function GoldenVisaPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Gross Rental Income:</span>
-                      <span className="font-medium">{formatCurrency(calculation.annualRental)}</span>
+                      <span className="font-medium">
+                        {formatCurrency(calculation.annualRental)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-red-600">
                       <span>Management Fees (10%):</span>
@@ -362,7 +366,9 @@ export default function GoldenVisaPage() {
                     <Separator />
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Net Annual Return:</span>
-                      <span className="text-green-600">{formatCurrency(calculation.netAnnualReturn)}</span>
+                      <span className="text-green-600">
+                        {formatCurrency(calculation.netAnnualReturn)}
+                      </span>
                     </div>
                   </div>
 
@@ -371,17 +377,13 @@ export default function GoldenVisaPage() {
                       <div className="text-xl font-bold text-blue-600">
                         {calculation.roiPercentage.toFixed(1)}%
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Annual ROI
-                      </div>
+                      <div className="text-sm text-muted-foreground">Annual ROI</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xl font-bold text-purple-600">
                         {calculation.breakEvenYears.toFixed(1)} years
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Break-even
-                      </div>
+                      <div className="text-sm text-muted-foreground">Break-even</div>
                     </div>
                   </div>
 
@@ -406,9 +408,7 @@ export default function GoldenVisaPage() {
                   <CardContent className="p-6">
                     <benefit.icon className="w-8 h-8 text-primary mb-3" />
                     <h3 className="font-semibold mb-2">{benefit.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {benefit.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -480,7 +480,7 @@ export default function GoldenVisaPage() {
           <TabsContent value="process">
             <div className="space-y-8">
               <h2 className="text-2xl font-bold text-center">Golden Visa Application Process</h2>
-              
+
               <div className="space-y-6">
                 {PROCESS_STEPS.map((step, index) => (
                   <Card key={index}>
@@ -528,7 +528,9 @@ export default function GoldenVisaPage() {
                         <Input
                           id="name"
                           value={contactForm.name}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({ ...prev, name: e.target.value }))
+                          }
                           required
                         />
                       </div>
@@ -538,7 +540,9 @@ export default function GoldenVisaPage() {
                           id="email"
                           type="email"
                           value={contactForm.email}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({ ...prev, email: e.target.value }))
+                          }
                           required
                         />
                       </div>
@@ -551,7 +555,9 @@ export default function GoldenVisaPage() {
                           id="phone"
                           type="tel"
                           value={contactForm.phone}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({ ...prev, phone: e.target.value }))
+                          }
                         />
                       </div>
                       <div>
@@ -559,7 +565,9 @@ export default function GoldenVisaPage() {
                         <Input
                           id="nationality"
                           value={contactForm.nationality}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, nationality: e.target.value }))}
+                          onChange={(e) =>
+                            setContactForm((prev) => ({ ...prev, nationality: e.target.value }))
+                          }
                         />
                       </div>
                     </div>
@@ -569,7 +577,9 @@ export default function GoldenVisaPage() {
                       <Input
                         id="budget"
                         value={contactForm.investmentBudget}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, investmentBudget: e.target.value }))}
+                        onChange={(e) =>
+                          setContactForm((prev) => ({ ...prev, investmentBudget: e.target.value }))
+                        }
                         placeholder="e.g., €300,000 - €500,000"
                       />
                     </div>
@@ -581,13 +591,15 @@ export default function GoldenVisaPage() {
                         className="w-full p-3 border border-input rounded-md resize-none"
                         rows={4}
                         value={contactForm.message}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                        onChange={(e) =>
+                          setContactForm((prev) => ({ ...prev, message: e.target.value }))
+                        }
                         placeholder="Tell us about your Golden Visa requirements and timeline..."
                       />
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Submitting..." : "Request Free Consultation"}
+                      {isSubmitting ? 'Submitting...' : 'Request Free Consultation'}
                     </Button>
                   </form>
                 </CardContent>
@@ -669,5 +681,5 @@ export default function GoldenVisaPage() {
         </Tabs>
       </div>
     </div>
-  );
+  )
 }

@@ -1,23 +1,19 @@
-"use client";
+'use client'
 
-import { useUser } from "@clerk/nextjs";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { redirect } from "next/navigation";
-import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { useUser } from '@clerk/nextjs'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { redirect } from 'next/navigation'
+import { useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { user, isLoaded } = useUser();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoaded } = useUser()
 
   useEffect(() => {
     if (isLoaded && !user) {
-      redirect("/sign-in");
+      redirect('/sign-in')
     }
-  }, [user, isLoaded]);
+  }, [user, isLoaded])
 
   if (!isLoaded) {
     return (
@@ -27,21 +23,19 @@ export default function DashboardLayout({
           <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!user) {
-    return null;
+    return null
   }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-auto">
-        <div className="container max-w-none p-6">
-          {children}
-        </div>
+        <div className="container max-w-none p-6">{children}</div>
       </main>
     </div>
-  );
+  )
 }

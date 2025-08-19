@@ -448,32 +448,20 @@
 
   /* Glassmorphism patterns with warm undertones */
   .glass-warm-light {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(255, 244, 242, 0.9) 100%
-    );
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 244, 242, 0.9) 100%);
     backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .glass-warm-dark {
-    background: linear-gradient(
-      135deg,
-      rgba(52, 45, 52, 0.9) 0%,
-      rgba(74, 58, 66, 0.9) 100%
-    );
+    background: linear-gradient(135deg, rgba(52, 45, 52, 0.9) 0%, rgba(74, 58, 66, 0.9) 100%);
     backdrop-filter: blur(24px);
     border: 1px solid rgba(75, 85, 99, 0.3);
   }
 
   /* Persona gradient overlays */
   .persona-gradient-overlay {
-    background: linear-gradient(
-      135deg,
-      var(--persona-primary) 0%,
-      var(--persona-secondary) 100%
-    );
+    background: linear-gradient(135deg, var(--persona-primary) 0%, var(--persona-secondary) 100%);
     opacity: 0.1;
   }
 

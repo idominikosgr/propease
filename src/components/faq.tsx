@@ -3,11 +3,11 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { FAQS } from "@/constants";
-import AnimationContainer from "./global/animation-container";
-import Wrapper from "./global/wrapper";
-import SectionBadge from "./ui/section-badge";
+} from '@/components/ui/accordion'
+import { FAQS } from '@/constants'
+import AnimationContainer from './global/animation-container'
+import Wrapper from './global/wrapper'
+import SectionBadge from './ui/section-badge'
 
 const FAQ = () => {
   return (
@@ -33,11 +33,7 @@ const FAQ = () => {
       <div className="max-w-3xl mx-auto pt-10">
         <Accordion type="single" collapsible className="w-full space-y-4">
           {FAQS.map((item, index) => (
-            <AnimationContainer
-              key={index}
-              animation="fadeUp"
-              delay={0.5 + index * 0.1}
-            >
+            <AnimationContainer key={index} animation="fadeUp" delay={0.5 + index * 0.1}>
               <AccordionItem
                 value={`item-${index}`}
                 className="border-none bg-[#191919] rounded-2xl px-6"
@@ -54,7 +50,7 @@ const FAQ = () => {
         </Accordion>
       </div>
     </Wrapper>
-  );
-};
+  )
+}
 
-export default FAQ;
+export default FAQ

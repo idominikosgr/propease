@@ -1,79 +1,79 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
-import { StarIcon, MapPinIcon, EuroIcon, BedIcon, RulerIcon } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+import { useEffect, useRef, useState } from 'react'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
+import { StarIcon, MapPinIcon, EuroIcon, BedIcon, RulerIcon } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 interface Property {
-  id: number;
-  title: string;
-  price: number;
-  rooms: number;
-  sqr_meters: number;
-  area_name: string;
-  subarea_name: string;
-  category_name: string;
-  subcategory_name: string;
-  primary_image?: string;
-  description: string;
-  latitude?: number;
-  longitude?: number;
-  golden_visa_eligible?: boolean;
+  id: number
+  title: string
+  price: number
+  rooms: number
+  sqr_meters: number
+  area_name: string
+  subarea_name: string
+  category_name: string
+  subcategory_name: string
+  primary_image?: string
+  description: string
+  latitude?: number
+  longitude?: number
+  golden_visa_eligible?: boolean
 }
 
 interface PropertyMapProps {
-  properties: Property[];
+  properties: Property[]
 }
 
 // Default center of Athens
 const ATHENS_CENTER = {
   lat: 37.9755,
-  lng: 23.7348
-};
+  lng: 23.7348,
+}
 
 export default function PropertyMap({ properties }: PropertyMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
+  const mapRef = useRef<HTMLDivElement>(null)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [markers, setMarkers] = useState<google.maps.Marker[]>([])
 
   // Check if Google Maps is available
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
 
   useEffect(() => {
     // Check if Google Maps script is loaded
-    if (typeof window !== "undefined" && window.google && window.google.maps) {
-      setIsGoogleMapsLoaded(true);
+    if (typeof window !== 'undefined' && window.google && window.google.maps) {
+      setIsGoogleMapsLoaded(true)
     } else {
       // Load Google Maps script if not available
-      loadGoogleMapsScript();
+      loadGoogleMapsScript()
     }
-  }, []);
+  }, [])
 
   const loadGoogleMapsScript = () => {
     if (document.getElementById('google-maps-script')) {
-      return;
+      return
     }
 
-    const script = document.createElement('script');
-    script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.onload = () => setIsGoogleMapsLoaded(true);
+    const script = document.createElement('script')
+    script.id = 'google-maps-script'
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
+    script.async = true
+    script.onload = () => setIsGoogleMapsLoaded(true)
     script.onerror = () => {
-      console.error('Failed to load Google Maps script');
+      console.error('Failed to load Google Maps script')
       // Fallback to OpenStreetMap or show error message
-    };
-    document.head.appendChild(script);
-  };
+    }
+    document.head.appendChild(script)
+  }
 
   // Initialize map
   useEffect(() => {
-    if (!isGoogleMapsLoaded || !mapRef.current || map) return;
+    if (!(isGoogleMapsLoaded && mapRef.current) || map) return
 
     const newMap = new google.maps.Map(mapRef.current, {
       center: ATHENS_CENTER,
@@ -84,33 +84,33 @@ export default function PropertyMap({ properties }: PropertyMapProps) {
       zoomControl: true,
       styles: [
         {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }]
-        }
-      ]
-    });
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }],
+        },
+      ],
+    })
 
-    setMap(newMap);
-  }, [isGoogleMapsLoaded, map]);
+    setMap(newMap)
+  }, [isGoogleMapsLoaded, map])
 
   // Update markers when properties change
   useEffect(() => {
-    if (!map || !isGoogleMapsLoaded) return;
+    if (!(map && isGoogleMapsLoaded)) return
 
     // Clear existing markers
-    markers.forEach(marker => marker.setMap(null));
+    markers.forEach((marker) => marker.setMap(null))
 
     // Add new markers
-    const newMarkers: google.maps.Marker[] = [];
-    const bounds = new google.maps.LatLngBounds();
+    const newMarkers: google.maps.Marker[] = []
+    const bounds = new google.maps.LatLngBounds()
 
-    properties.forEach(property => {
+    properties.forEach((property) => {
       if (property.latitude && property.longitude) {
-        const position = { 
-          lat: property.latitude, 
-          lng: property.longitude 
-        };
+        const position = {
+          lat: property.latitude,
+          lng: property.longitude,
+        }
 
         const marker = new google.maps.Marker({
           position,
@@ -123,57 +123,57 @@ export default function PropertyMap({ properties }: PropertyMapProps) {
             fillOpacity: 0.8,
             strokeColor: '#FFFFFF',
             strokeWeight: 2,
-          }
-        });
+          },
+        })
 
         marker.addListener('click', () => {
-          setSelectedProperty(property);
-        });
+          setSelectedProperty(property)
+        })
 
-        newMarkers.push(marker);
-        bounds.extend(position);
+        newMarkers.push(marker)
+        bounds.extend(position)
       }
-    });
+    })
 
-    setMarkers(newMarkers);
+    setMarkers(newMarkers)
 
     // Fit map to show all markers
     if (newMarkers.length > 0) {
-      map.fitBounds(bounds);
-      
+      map.fitBounds(bounds)
+
       // Don't zoom in too much for single properties
       const listener = google.maps.event.addListener(map, 'bounds_changed', () => {
-        if (map.getZoom()! > 16) map.setZoom(16);
-        google.maps.event.removeListener(listener);
-      });
+        if (map.getZoom()! > 16) map.setZoom(16)
+        google.maps.event.removeListener(listener)
+      })
     }
 
     return () => {
-      newMarkers.forEach(marker => marker.setMap(null));
-    };
-  }, [map, properties, isGoogleMapsLoaded]);
+      newMarkers.forEach((marker) => marker.setMap(null))
+    }
+  }, [map, properties, isGoogleMapsLoaded])
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("el-GR", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('el-GR', {
+      style: 'currency',
+      currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
-  };
+    }).format(price)
+  }
 
   if (!isGoogleMapsLoaded) {
     return (
       <div className="h-full bg-muted rounded-lg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
           <p className="text-muted-foreground">Loading map...</p>
           <p className="text-xs text-muted-foreground mt-2">
             Make sure Google Maps API key is configured
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -186,11 +186,11 @@ export default function PropertyMap({ properties }: PropertyMapProps) {
         <h4 className="font-semibold text-sm mb-2">Map Legend</h4>
         <div className="space-y-2 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
             <span>Regular Property</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
             <span>Golden Visa Eligible</span>
           </div>
         </div>
@@ -278,11 +278,9 @@ export default function PropertyMap({ properties }: PropertyMapProps) {
       {/* Instructions */}
       {!selectedProperty && (
         <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-          <p className="text-xs text-muted-foreground">
-            Click on markers to view property details
-          </p>
+          <p className="text-xs text-muted-foreground">Click on markers to view property details</p>
         </div>
       )}
     </div>
-  );
+  )
 }

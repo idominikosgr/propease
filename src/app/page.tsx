@@ -1,14 +1,14 @@
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
-import CTA from "@/components/cta";
-import FAQ from "@/components/faq";
-import Features from "@/components/features";
-import Hero from "@/components/hero";
-import HowItWorks from "@/components/how-it-works";
-import Perks from "@/components/perks";
-import PlatformMetrics from "@/components/platform-metrics";
-import Pricing from "@/components/pricing";
-import Testimonials from "@/components/testimonials";
+import Footer from '@/components/footer'
+import Navbar from '@/components/navbar'
+import CTA from '@/components/cta'
+import FAQ from '@/components/faq'
+import Features from '@/components/features'
+import Hero from '@/components/hero'
+import HowItWorks from '@/components/how-it-works'
+import Perks from '@/components/perks'
+import PlatformMetrics from '@/components/platform-metrics'
+import Pricing from '@/components/pricing'
+import Testimonials from '@/components/testimonials'
 
 export default function RootPage() {
   return (
@@ -53,5 +53,5 @@ export default function RootPage() {
       </div>
       <Footer />
     </main>
-  );
+  )
 }

@@ -1,207 +1,219 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  HeartIcon, 
-  BellIcon, 
-  SearchIcon, 
-  TrashIcon, 
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  HeartIcon,
+  BellIcon,
+  SearchIcon,
+  TrashIcon,
   PlusIcon,
   PlayIcon,
   PauseIcon,
   EditIcon,
   FilterIcon,
-  StarIcon
-} from "lucide-react";
-import Link from "next/link";
-import { toast } from "sonner";
+  StarIcon,
+} from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
 
 interface SavedSearch {
-  id: string;
-  name: string;
-  filters: any;
-  results_count: number;
-  created_at: string;
+  id: string
+  name: string
+  filters: any
+  results_count: number
+  created_at: string
 }
 
 interface PropertyAlert {
-  id: string;
-  name: string;
-  filters: any;
-  email_notifications: boolean;
-  frequency: string;
-  active: boolean;
-  created_at: string;
-  last_notification: string | null;
+  id: string
+  name: string
+  filters: any
+  email_notifications: boolean
+  frequency: string
+  active: boolean
+  created_at: string
+  last_notification: string | null
 }
 
 interface UserPreferences {
-  language: string;
-  email_notifications: boolean;
-  sms_notifications: boolean;
-  currency: string;
+  language: string
+  email_notifications: boolean
+  sms_notifications: boolean
+  currency: string
 }
 
 export default function SavedPage() {
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
-  const [alerts, setAlerts] = useState<PropertyAlert[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
+  const [alerts, setAlerts] = useState<PropertyAlert[]>([])
   const [preferences, setPreferences] = useState<UserPreferences>({
-    language: "en",
+    language: 'en',
     email_notifications: true,
     sms_notifications: false,
-    currency: "EUR"
-  });
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+    currency: 'EUR',
+  })
+  const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
   const [newAlert, setNewAlert] = useState({
-    name: "",
+    name: '',
     filters: {},
-    frequency: "daily",
-    emailNotifications: true
-  });
+    frequency: 'daily',
+    emailNotifications: true,
+  })
 
   const fetchUserData = async () => {
     try {
-      setLoading(true);
-      const response = await fetch("/api/user/preferences");
-      const result = await response.json();
+      setLoading(true)
+      const response = await fetch('/api/user/preferences')
+      const result = await response.json()
 
       if (result.success) {
-        setSavedSearches(result.data.savedSearches);
-        setAlerts(result.data.alerts);
-        setPreferences(result.data.preferences);
+        setSavedSearches(result.data.savedSearches)
+        setAlerts(result.data.alerts)
+        setPreferences(result.data.preferences)
       } else {
-        toast.error("Failed to load saved data");
+        toast.error('Failed to load saved data')
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
-      toast.error("Failed to load data");
+      console.error('Error fetching user data:', error)
+      toast.error('Failed to load data')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const deleteSavedSearch = async (id: string) => {
     try {
       const response = await fetch(`/api/user/preferences?type=saved_search&id=${id}`, {
-        method: "DELETE"
-      });
+        method: 'DELETE',
+      })
 
       if (response.ok) {
-        setSavedSearches(prev => prev.filter(search => search.id !== id));
-        toast.success("Saved search deleted");
+        setSavedSearches((prev) => prev.filter((search) => search.id !== id))
+        toast.success('Saved search deleted')
       } else {
-        toast.error("Failed to delete saved search");
+        toast.error('Failed to delete saved search')
       }
     } catch (error) {
-      console.error("Error deleting saved search:", error);
-      toast.error("Failed to delete saved search");
+      console.error('Error deleting saved search:', error)
+      toast.error('Failed to delete saved search')
     }
-  };
+  }
 
   const toggleAlert = async (alertId: string, active: boolean) => {
     try {
       const response = await fetch(`/api/user/preferences?type=alert&id=${alertId}`, {
-        method: active ? "POST" : "DELETE"
-      });
+        method: active ? 'POST' : 'DELETE',
+      })
 
       if (response.ok) {
-        setAlerts(prev => prev.map(alert => 
-          alert.id === alertId ? { ...alert, active } : alert
-        ));
-        toast.success(`Alert ${active ? "activated" : "deactivated"}`);
+        setAlerts((prev) =>
+          prev.map((alert) => (alert.id === alertId ? { ...alert, active } : alert))
+        )
+        toast.success(`Alert ${active ? 'activated' : 'deactivated'}`)
       } else {
-        toast.error("Failed to update alert");
+        toast.error('Failed to update alert')
       }
     } catch (error) {
-      console.error("Error updating alert:", error);
-      toast.error("Failed to update alert");
+      console.error('Error updating alert:', error)
+      toast.error('Failed to update alert')
     }
-  };
+  }
 
   const createAlert = async () => {
     try {
-      setCreating(true);
-      const response = await fetch("/api/user/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      setCreating(true)
+      const response = await fetch('/api/user/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: "create_alert",
-          data: newAlert
-        })
-      });
+          type: 'create_alert',
+          data: newAlert,
+        }),
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        setAlerts(prev => [...prev, result.data]);
+        setAlerts((prev) => [...prev, result.data])
         setNewAlert({
-          name: "",
+          name: '',
           filters: {},
-          frequency: "daily",
-          emailNotifications: true
-        });
-        toast.success("Alert created successfully");
+          frequency: 'daily',
+          emailNotifications: true,
+        })
+        toast.success('Alert created successfully')
       } else {
-        toast.error("Failed to create alert");
+        toast.error('Failed to create alert')
       }
     } catch (error) {
-      console.error("Error creating alert:", error);
-      toast.error("Failed to create alert");
+      console.error('Error creating alert:', error)
+      toast.error('Failed to create alert')
     } finally {
-      setCreating(false);
+      setCreating(false)
     }
-  };
+  }
 
   const updatePreferences = async (newPrefs: Partial<UserPreferences>) => {
     try {
-      const response = await fetch("/api/user/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/user/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: "update_preferences",
-          data: { ...preferences, ...newPrefs }
-        })
-      });
+          type: 'update_preferences',
+          data: { ...preferences, ...newPrefs },
+        }),
+      })
 
       if (response.ok) {
-        setPreferences(prev => ({ ...prev, ...newPrefs }));
-        toast.success("Preferences updated");
+        setPreferences((prev) => ({ ...prev, ...newPrefs }))
+        toast.success('Preferences updated')
       } else {
-        toast.error("Failed to update preferences");
+        toast.error('Failed to update preferences')
       }
     } catch (error) {
-      console.error("Error updating preferences:", error);
-      toast.error("Failed to update preferences");
+      console.error('Error updating preferences:', error)
+      toast.error('Failed to update preferences')
     }
-  };
+  }
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    fetchUserData()
+  }, [])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB");
-  };
+    return new Date(dateString).toLocaleDateString('en-GB')
+  }
 
   const getFilterSummary = (filters: any) => {
-    const parts = [];
-    if (filters.minPrice) parts.push(`€${filters.minPrice}+`);
-    if (filters.maxPrice) parts.push(`€${filters.maxPrice}-`);
-    if (filters.minRooms) parts.push(`${filters.minRooms}+ rooms`);
-    if (filters.area) parts.push(filters.area);
-    if (filters.goldenVisaOnly) parts.push("Golden Visa");
-    return parts.join(", ") || "All properties";
-  };
+    const parts = []
+    if (filters.minPrice) parts.push(`€${filters.minPrice}+`)
+    if (filters.maxPrice) parts.push(`€${filters.maxPrice}-`)
+    if (filters.minRooms) parts.push(`${filters.minRooms}+ rooms`)
+    if (filters.area) parts.push(filters.area)
+    if (filters.goldenVisaOnly) parts.push('Golden Visa')
+    return parts.join(', ') || 'All properties'
+  }
 
   if (loading) {
     return (
@@ -213,19 +225,19 @@ export default function SavedPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
-                <div className="h-6 bg-muted rounded w-3/4"></div>
+                <div className="h-6 bg-muted rounded w-3/4" />
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="h-4 bg-muted rounded w-full"></div>
-                  <div className="h-4 bg-muted rounded w-2/3"></div>
+                  <div className="h-4 bg-muted rounded w-full" />
+                  <div className="h-4 bg-muted rounded w-2/3" />
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -249,15 +261,15 @@ export default function SavedPage() {
                 <Input
                   id="alert-name"
                   value={newAlert.name}
-                  onChange={(e) => setNewAlert(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Golden Visa Properties in Athens"
                 />
               </div>
               <div>
                 <Label htmlFor="frequency">Notification Frequency</Label>
-                <Select 
-                  value={newAlert.frequency} 
-                  onValueChange={(value) => setNewAlert(prev => ({ ...prev, frequency: value }))}
+                <Select
+                  value={newAlert.frequency}
+                  onValueChange={(value) => setNewAlert((prev) => ({ ...prev, frequency: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -273,12 +285,14 @@ export default function SavedPage() {
                 <Switch
                   id="email-notifications"
                   checked={newAlert.emailNotifications}
-                  onCheckedChange={(checked) => setNewAlert(prev => ({ ...prev, emailNotifications: checked }))}
+                  onCheckedChange={(checked) =>
+                    setNewAlert((prev) => ({ ...prev, emailNotifications: checked }))
+                  }
                 />
                 <Label htmlFor="email-notifications">Email notifications</Label>
               </div>
               <Button onClick={createAlert} disabled={creating || !newAlert.name}>
-                {creating ? "Creating..." : "Create Alert"}
+                {creating ? 'Creating...' : 'Create Alert'}
               </Button>
             </div>
           </DialogContent>
@@ -293,7 +307,7 @@ export default function SavedPage() {
           </TabsTrigger>
           <TabsTrigger value="alerts" className="flex items-center gap-2">
             <BellIcon className="w-4 h-4" />
-            Property Alerts ({alerts.filter(a => a.active).length})
+            Property Alerts ({alerts.filter((a) => a.active).length})
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <EditIcon className="w-4 h-4" />
@@ -342,14 +356,12 @@ export default function SavedPage() {
                         {getFilterSummary(search.filters)}
                       </div>
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary">
-                          {search.results_count} results
-                        </Badge>
+                        <Badge variant="secondary">{search.results_count} results</Badge>
                         <span className="text-xs text-muted-foreground">
                           {formatDate(search.created_at)}
                         </span>
                       </div>
-                      <Link 
+                      <Link
                         href={`/properties?${new URLSearchParams(search.filters).toString()}`}
                         className="block"
                       >
@@ -392,15 +404,19 @@ export default function SavedPage() {
                         <Input
                           id="alert-name"
                           value={newAlert.name}
-                          onChange={(e) => setNewAlert(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setNewAlert((prev) => ({ ...prev, name: e.target.value }))
+                          }
                           placeholder="e.g., Golden Visa Properties in Athens"
                         />
                       </div>
                       <div>
                         <Label htmlFor="frequency">Notification Frequency</Label>
-                        <Select 
-                          value={newAlert.frequency} 
-                          onValueChange={(value) => setNewAlert(prev => ({ ...prev, frequency: value }))}
+                        <Select
+                          value={newAlert.frequency}
+                          onValueChange={(value) =>
+                            setNewAlert((prev) => ({ ...prev, frequency: value }))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -413,7 +429,7 @@ export default function SavedPage() {
                         </Select>
                       </div>
                       <Button onClick={createAlert} disabled={creating || !newAlert.name}>
-                        {creating ? "Creating..." : "Create Alert"}
+                        {creating ? 'Creating...' : 'Create Alert'}
                       </Button>
                     </div>
                   </DialogContent>
@@ -453,12 +469,10 @@ export default function SavedPage() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <Badge variant={alert.active ? "default" : "secondary"}>
-                          {alert.active ? "Active" : "Paused"}
+                        <Badge variant={alert.active ? 'default' : 'secondary'}>
+                          {alert.active ? 'Active' : 'Paused'}
                         </Badge>
-                        <Badge variant="outline">
-                          {alert.frequency}
-                        </Badge>
+                        <Badge variant="outline">{alert.frequency}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         <FilterIcon className="w-4 h-4 inline mr-1" />
@@ -490,7 +504,9 @@ export default function SavedPage() {
                   <Switch
                     id="email-notifications"
                     checked={preferences.email_notifications}
-                    onCheckedChange={(checked) => updatePreferences({ email_notifications: checked })}
+                    onCheckedChange={(checked) =>
+                      updatePreferences({ email_notifications: checked })
+                    }
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -511,8 +527,8 @@ export default function SavedPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="language">Language</Label>
-                  <Select 
-                    value={preferences.language} 
+                  <Select
+                    value={preferences.language}
                     onValueChange={(value) => updatePreferences({ language: value })}
                   >
                     <SelectTrigger>
@@ -526,8 +542,8 @@ export default function SavedPage() {
                 </div>
                 <div>
                   <Label htmlFor="currency">Currency</Label>
-                  <Select 
-                    value={preferences.currency} 
+                  <Select
+                    value={preferences.currency}
                     onValueChange={(value) => updatePreferences({ currency: value })}
                   >
                     <SelectTrigger>
@@ -546,5 +562,5 @@ export default function SavedPage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

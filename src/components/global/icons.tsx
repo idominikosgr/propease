@@ -1,4 +1,4 @@
-import { LucideProps } from "lucide-react";
+import type { LucideProps } from 'lucide-react'
 
 const Icons = {
   icon: (props: LucideProps) => (
@@ -102,6 +102,6 @@ const Icons = {
       </defs>
     </svg>
   ),
-};
+}
 
-export default Icons;
+export default Icons

@@ -8,15 +8,15 @@ export {
   supabasePublic as supabase,
   createAuthenticatedSupabaseClient,
   useSupabase,
-} from "./supabase-client";
+} from './supabase-client'
 
 // Legacy exports for backward compatibility
 export function createSupabaseClient() {
-  const { supabasePublic } = require("./supabase-client");
-  return supabasePublic;
+  const { supabasePublic } = require('./supabase-client')
+  return supabasePublic
 }
 
 export function useSupabaseClient() {
-  const { useSupabase } = require("./supabase-client");
-  return useSupabase();
+  const { useSupabase } = require('./supabase-client')
+  return useSupabase()
 }

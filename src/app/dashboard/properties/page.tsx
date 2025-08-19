@@ -1,239 +1,240 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { 
-  Building, 
-  Search, 
-  Filter, 
-  Eye, 
-  ToggleLeft, 
-  ToggleRight, 
-  MapPin, 
-  Euro, 
-  Home, 
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Building,
+  Search,
+  Filter,
+  Eye,
+  ToggleLeft,
+  ToggleRight,
+  MapPin,
+  Euro,
+  Home,
   Calendar,
   RefreshCw,
   ExternalLink,
   AlertCircle,
-  CheckCircle2
-} from "lucide-react";
-import { toast } from "sonner";
+  CheckCircle2,
+} from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Property {
-  id: string;
-  ilist_id: number;
-  title?: string;
-  price: number;
-  sqr_meters?: number;
-  rooms?: number;
-  bathrooms?: number;
-  area_id?: number;
-  subarea_id?: number;
-  status_id: number;
-  building_year?: number;
-  energy_class_id?: number;
-  latitude?: number;
-  longitude?: number;
-  postal_code?: string;
-  update_date: string;
-  last_ilist_sync?: string;
-  primary_image?: string;
-  partner_name?: string;
-  custom_code?: string;
+  id: string
+  ilist_id: number
+  title?: string
+  price: number
+  sqr_meters?: number
+  rooms?: number
+  bathrooms?: number
+  area_id?: number
+  subarea_id?: number
+  status_id: number
+  building_year?: number
+  energy_class_id?: number
+  latitude?: number
+  longitude?: number
+  postal_code?: string
+  update_date: string
+  last_ilist_sync?: string
+  primary_image?: string
+  partner_name?: string
+  custom_code?: string
 }
 
 interface PropertyFilters {
-  search: string;
-  minPrice: string;
-  maxPrice: string;
-  minRooms: string;
-  maxRooms: string;
-  minSqrMeters: string;
-  maxSqrMeters: string;
-  areaIds: string;
-  statusFilter: string;
-  limit: number;
-  offset: number;
+  search: string
+  minPrice: string
+  maxPrice: string
+  minRooms: string
+  maxRooms: string
+  minSqrMeters: string
+  maxSqrMeters: string
+  areaIds: string
+  statusFilter: string
+  limit: number
+  offset: number
 }
 
 export default function PropertiesPage() {
-  const { user } = useUser();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(0);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const { user } = useUser()
+  const [properties, setProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState(false)
+  const [total, setTotal] = useState(0)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [filters, setFilters] = useState<PropertyFilters>({
-    search: "",
-    minPrice: "",
-    maxPrice: "",
-    minRooms: "",
-    maxRooms: "",
-    minSqrMeters: "",
-    maxSqrMeters: "",
-    areaIds: "",
-    statusFilter: "all",
+    search: '',
+    minPrice: '',
+    maxPrice: '',
+    minRooms: '',
+    maxRooms: '',
+    minSqrMeters: '',
+    maxSqrMeters: '',
+    areaIds: '',
+    statusFilter: 'all',
     limit: 20,
     offset: 0,
-  });
+  })
 
   // Check user role
-  const userRole = user?.publicMetadata?.role as string;
-  const isAgent = userRole === "agent" || userRole === "admin";
+  const userRole = user?.publicMetadata?.role as string
+  const isAgent = userRole === 'agent' || userRole === 'admin'
 
   // Fetch properties with filters
   const fetchProperties = async (newFilters = filters) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const params = new URLSearchParams();
-      
+      const params = new URLSearchParams()
+
       // Add filters to params
-      if (newFilters.search) params.append("search", newFilters.search);
-      if (newFilters.minPrice) params.append("minPrice", newFilters.minPrice);
-      if (newFilters.maxPrice) params.append("maxPrice", newFilters.maxPrice);
-      if (newFilters.minRooms) params.append("minRooms", newFilters.minRooms);
-      if (newFilters.maxRooms) params.append("maxRooms", newFilters.maxRooms);
-      if (newFilters.minSqrMeters) params.append("minSqrMeters", newFilters.minSqrMeters);
-      if (newFilters.maxSqrMeters) params.append("maxSqrMeters", newFilters.maxSqrMeters);
-      if (newFilters.areaIds) params.append("areaIds", newFilters.areaIds);
-      params.append("limit", newFilters.limit.toString());
-      params.append("offset", newFilters.offset.toString());
+      if (newFilters.search) params.append('search', newFilters.search)
+      if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice)
+      if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice)
+      if (newFilters.minRooms) params.append('minRooms', newFilters.minRooms)
+      if (newFilters.maxRooms) params.append('maxRooms', newFilters.maxRooms)
+      if (newFilters.minSqrMeters) params.append('minSqrMeters', newFilters.minSqrMeters)
+      if (newFilters.maxSqrMeters) params.append('maxSqrMeters', newFilters.maxSqrMeters)
+      if (newFilters.areaIds) params.append('areaIds', newFilters.areaIds)
+      params.append('limit', newFilters.limit.toString())
+      params.append('offset', newFilters.offset.toString())
 
       // Use direct table access for admin/agent to see all properties
       if (isAgent) {
-        params.append("source", "direct");
+        params.append('source', 'direct')
       }
 
-      const response = await fetch(`/api/properties?${params.toString()}`);
-      const data = await response.json();
+      const response = await fetch(`/api/properties?${params.toString()}`)
+      const data = await response.json()
 
       if (data.success) {
         // Filter by status if needed (since API might return all)
-        let filteredProperties = data.data || [];
-        if (newFilters.statusFilter === "active") {
-          filteredProperties = filteredProperties.filter((p: Property) => p.status_id === 1);
-        } else if (newFilters.statusFilter === "inactive") {
-          filteredProperties = filteredProperties.filter((p: Property) => p.status_id !== 1);
+        let filteredProperties = data.data || []
+        if (newFilters.statusFilter === 'active') {
+          filteredProperties = filteredProperties.filter((p: Property) => p.status_id === 1)
+        } else if (newFilters.statusFilter === 'inactive') {
+          filteredProperties = filteredProperties.filter((p: Property) => p.status_id !== 1)
         }
 
-        setProperties(filteredProperties);
-        setTotal(data.total || filteredProperties.length);
+        setProperties(filteredProperties)
+        setTotal(data.total || filteredProperties.length)
       } else {
-        toast.error("Failed to fetch properties");
-        console.error("Properties fetch error:", data.error);
+        toast.error('Failed to fetch properties')
+        console.error('Properties fetch error:', data.error)
       }
     } catch (error) {
-      toast.error("Failed to fetch properties");
-      console.error("Properties fetch error:", error);
+      toast.error('Failed to fetch properties')
+      console.error('Properties fetch error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Toggle property status
   const togglePropertyStatus = async (property: Property) => {
-    const newStatus = property.status_id === 1 ? 2 : 1;
-    
+    const newStatus = property.status_id === 1 ? 2 : 1
+
     try {
       const response = await fetch(`/api/properties/${property.id}/status`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           status_id: newStatus,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success) {
-        toast.success(`Property ${newStatus === 1 ? 'activated' : 'deactivated'} successfully`);
+        toast.success(`Property ${newStatus === 1 ? 'activated' : 'deactivated'} successfully`)
         // Refresh properties list
-        fetchProperties();
+        fetchProperties()
       } else {
-        toast.error("Failed to update property status");
+        toast.error('Failed to update property status')
       }
     } catch (error) {
-      toast.error("Failed to update property status");
-      console.error("Status update error:", error);
+      toast.error('Failed to update property status')
+      console.error('Status update error:', error)
     }
-  };
+  }
 
   // Apply filters
   const handleSearch = () => {
-    setFilters(prev => ({ ...prev, offset: 0 }));
-    fetchProperties({ ...filters, offset: 0 });
-  };
+    setFilters((prev) => ({ ...prev, offset: 0 }))
+    fetchProperties({ ...filters, offset: 0 })
+  }
 
   // Clear filters
   const clearFilters = () => {
     const clearedFilters = {
-      search: "",
-      minPrice: "",
-      maxPrice: "",
-      minRooms: "",
-      maxRooms: "",
-      minSqrMeters: "",
-      maxSqrMeters: "",
-      areaIds: "",
-      statusFilter: "all",
+      search: '',
+      minPrice: '',
+      maxPrice: '',
+      minRooms: '',
+      maxRooms: '',
+      minSqrMeters: '',
+      maxSqrMeters: '',
+      areaIds: '',
+      statusFilter: 'all',
       limit: 20,
       offset: 0,
-    };
-    setFilters(clearedFilters);
-    fetchProperties(clearedFilters);
-  };
+    }
+    setFilters(clearedFilters)
+    fetchProperties(clearedFilters)
+  }
 
   // Pagination
   const handlePagination = (direction: 'prev' | 'next') => {
-    const newOffset = direction === 'prev' 
-      ? Math.max(0, filters.offset - filters.limit)
-      : filters.offset + filters.limit;
-    
-    const newFilters = { ...filters, offset: newOffset };
-    setFilters(newFilters);
-    fetchProperties(newFilters);
-  };
+    const newOffset =
+      direction === 'prev'
+        ? Math.max(0, filters.offset - filters.limit)
+        : filters.offset + filters.limit
+
+    const newFilters = { ...filters, offset: newOffset }
+    setFilters(newFilters)
+    fetchProperties(newFilters)
+  }
 
   useEffect(() => {
-    fetchProperties();
-  }, [user]);
+    fetchProperties()
+  }, [user])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
-    }).format(price);
-  };
+    }).format(price)
+  }
 
   const getStatusBadge = (statusId: number) => {
     return statusId === 1 ? (
@@ -246,8 +247,8 @@ export default function PropertiesPage() {
         <AlertCircle className="w-3 h-3 mr-1" />
         Inactive
       </Badge>
-    );
-  };
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -283,13 +284,13 @@ export default function PropertiesPage() {
               <Input
                 placeholder="Search properties by title, code, or description..."
                 value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
             <Select
               value={filters.statusFilter}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, statusFilter: value }))}
+              onValueChange={(value) => setFilters((prev) => ({ ...prev, statusFilter: value }))}
             >
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
@@ -310,7 +311,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="0"
                 value={filters.minPrice}
-                onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, minPrice: e.target.value }))}
               />
             </div>
             <div>
@@ -319,7 +320,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="1000000"
                 value={filters.maxPrice}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: e.target.value }))}
               />
             </div>
             <div>
@@ -328,7 +329,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="1"
                 value={filters.minRooms}
-                onChange={(e) => setFilters(prev => ({ ...prev, minRooms: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, minRooms: e.target.value }))}
               />
             </div>
             <div>
@@ -337,7 +338,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="10"
                 value={filters.maxRooms}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxRooms: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, maxRooms: e.target.value }))}
               />
             </div>
           </div>
@@ -350,7 +351,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="20"
                 value={filters.minSqrMeters}
-                onChange={(e) => setFilters(prev => ({ ...prev, minSqrMeters: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, minSqrMeters: e.target.value }))}
               />
             </div>
             <div>
@@ -359,7 +360,7 @@ export default function PropertiesPage() {
                 type="number"
                 placeholder="500"
                 value={filters.maxSqrMeters}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxSqrMeters: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, maxSqrMeters: e.target.value }))}
               />
             </div>
             <div>
@@ -367,7 +368,7 @@ export default function PropertiesPage() {
               <Input
                 placeholder="2011, 2208, 2501"
                 value={filters.areaIds}
-                onChange={(e) => setFilters(prev => ({ ...prev, areaIds: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, areaIds: e.target.value }))}
               />
             </div>
           </div>
@@ -440,17 +441,11 @@ export default function PropertiesPage() {
                               {property.sqr_meters}m²
                             </span>
                           )}
-                          {property.rooms && (
-                            <span>🛏️ {property.rooms}</span>
-                          )}
-                          {property.bathrooms && (
-                            <span>🚿 {property.bathrooms}</span>
-                          )}
+                          {property.rooms && <span>🛏️ {property.rooms}</span>}
+                          {property.bathrooms && <span>🚿 {property.bathrooms}</span>}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(property.status_id)}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(property.status_id)}</TableCell>
                       <TableCell>
                         <div className="text-sm">
                           <p>{new Date(property.update_date).toLocaleDateString()}</p>
@@ -529,11 +524,11 @@ export default function PropertiesPage() {
                               )}
                             </DialogContent>
                           </Dialog>
-                          
+
                           {isAgent && (
                             <Button
                               size="sm"
-                              variant={property.status_id === 1 ? "destructive" : "default"}
+                              variant={property.status_id === 1 ? 'destructive' : 'default'}
                               onClick={() => togglePropertyStatus(property)}
                             >
                               {property.status_id === 1 ? (
@@ -553,7 +548,8 @@ export default function PropertiesPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filters.offset + 1} to {Math.min(filters.offset + filters.limit, total)} of {total} properties
+                  Showing {filters.offset + 1} to {Math.min(filters.offset + filters.limit, total)}{' '}
+                  of {total} properties
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -579,5 +575,5 @@ export default function PropertiesPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -3,9 +3,9 @@
  * Applies the corrected upsert_property_from_ilist function
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { createSupabaseServiceClient } from "@/lib/supabase-server";
+import { type NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { createSupabaseServiceClient } from '@/lib/supabase-server'
 
 const FIXED_FUNCTION_SQL = `
 CREATE OR REPLACE FUNCTION upsert_property_from_ilist(ilist_data JSONB)
@@ -104,79 +104,68 @@ BEGIN
   RETURN property_id;
 END;
 $$ LANGUAGE plpgsql;
-`;
+`
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and permissions
-    const { userId } = await auth();
+    const { userId } = await auth()
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     // Check if user has admin role
-    const client = await (await import("@clerk/nextjs/server")).clerkClient();
-    const user = await client.users.getUser(userId);
-    const userRole = user.publicMetadata?.role as string;
+    const client = await (await import('@clerk/nextjs/server')).clerkClient()
+    const user = await client.users.getUser(userId)
+    const userRole = user.publicMetadata?.role as string
 
-    if (userRole !== "admin") {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403 },
-      );
+    if (userRole !== 'admin') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const supabase = await createSupabaseServiceClient();
+    const supabase = await createSupabaseServiceClient()
 
     // Apply the fixed function (temporarily disabled due to type issues)
     // const { error } = await supabase.rpc("exec", {
     //   sql: FIXED_FUNCTION_SQL,
     // });
-    const error = null; // Temporarily disabled
+    const error = null // Temporarily disabled
 
     if (error) {
       // Try alternative approach - direct query execution
       try {
-        const { error: directError } = await supabase
-          .from("properties")
-          .select("id")
-          .limit(1);
+        const { error: directError } = await supabase.from('properties').select('id').limit(1)
 
         if (directError) {
-          throw new Error(`Database connection failed: ${directError.message}`);
+          throw new Error(`Database connection failed: ${directError.message}`)
         }
 
         return NextResponse.json({
           success: true,
-          message:
-            "Database function should be fixed. The corrected function has been applied.",
-          note: "If you have direct database access, please run the SQL from fix-database-function.sql",
-        });
+          message: 'Database function should be fixed. The corrected function has been applied.',
+          note: 'If you have direct database access, please run the SQL from fix-database-function.sql',
+        })
       } catch (altError) {
-        throw error;
+        throw error
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: "Database function has been successfully updated and fixed!",
-    });
+      message: 'Database function has been successfully updated and fixed!',
+    })
   } catch (error) {
-    console.error("Fix database error:", error);
+    console.error('Fix database error:', error)
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fix database function",
-        details: error instanceof Error ? error.message : "Unknown error",
-        instruction:
-          "Please run the SQL from fix-database-function.sql directly in your database",
+        error: 'Failed to fix database function',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        instruction: 'Please run the SQL from fix-database-function.sql directly in your database',
       },
-      { status: 500 },
-    );
+      { status: 500 }
+    )
   }
 }

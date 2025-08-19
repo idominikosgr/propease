@@ -1,41 +1,41 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { 
-  MessageSquare, 
-  Search, 
-  Filter, 
-  Eye, 
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+  MessageSquare,
+  Search,
+  Filter,
+  Eye,
   Mail,
   Phone,
   MapPin,
@@ -52,63 +52,63 @@ import {
   MessageCircle,
   Globe,
   Smartphone,
-  TrendingUp
-} from "lucide-react";
-import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
+  TrendingUp,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import Link from 'next/link'
 
 interface PropertyInquiry {
-  id: string;
-  property_id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message?: string;
-  source?: string;
-  user_agent?: string;
-  ip_address?: string;
-  referrer?: string;
-  status: string;
-  assigned_to?: string;
-  sent_to_ilist?: boolean;
-  ilist_lead_id?: number;
-  notes?: string;
-  created_at: string;
-  updated_at?: string;
+  id: string
+  property_id: string
+  name: string
+  email: string
+  phone?: string
+  message?: string
+  source?: string
+  user_agent?: string
+  ip_address?: string
+  referrer?: string
+  status: string
+  assigned_to?: string
+  sent_to_ilist?: boolean
+  ilist_lead_id?: number
+  notes?: string
+  created_at: string
+  updated_at?: string
   properties: {
-    id: string;
-    ilist_id: number;
-    title?: string;
-    custom_code?: string;
-    price: number;
-    area_id?: number;
-    partner_name?: string;
-  };
+    id: string
+    ilist_id: number
+    title?: string
+    custom_code?: string
+    price: number
+    area_id?: number
+    partner_name?: string
+  }
 }
 
 interface InquiryStats {
-  total: number;
-  new: number;
-  contacted: number;
-  converted: number;
-  closed: number;
-  thisMonth: number;
+  total: number
+  new: number
+  contacted: number
+  converted: number
+  closed: number
+  thisMonth: number
 }
 
 interface InquiryFilters {
-  search: string;
-  status: string;
-  assignedTo: string;
-  propertyId: string;
-  limit: number;
-  offset: number;
+  search: string
+  status: string
+  assignedTo: string
+  propertyId: string
+  limit: number
+  offset: number
 }
 
 export default function InquiriesPage() {
-  const { user } = useUser();
-  const [inquiries, setInquiries] = useState<PropertyInquiry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { user } = useUser()
+  const [inquiries, setInquiries] = useState<PropertyInquiry[]>([])
+  const [loading, setLoading] = useState(false)
   const [stats, setStats] = useState<InquiryStats>({
     total: 0,
     new: 0,
@@ -116,71 +116,71 @@ export default function InquiriesPage() {
     converted: 0,
     closed: 0,
     thisMonth: 0,
-  });
-  const [selectedInquiry, setSelectedInquiry] = useState<PropertyInquiry | null>(null);
-  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  })
+  const [selectedInquiry, setSelectedInquiry] = useState<PropertyInquiry | null>(null)
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [updating, setUpdating] = useState(false)
   const [updateForm, setUpdateForm] = useState({
-    status: "",
-    assignedTo: "",
-    notes: "",
-  });
+    status: '',
+    assignedTo: '',
+    notes: '',
+  })
 
   const [filters, setFilters] = useState<InquiryFilters>({
-    search: "",
-    status: "all",
-    assignedTo: "",
-    propertyId: "",
+    search: '',
+    status: 'all',
+    assignedTo: '',
+    propertyId: '',
     limit: 25,
     offset: 0,
-  });
+  })
 
   // Check user role
-  const userRole = user?.publicMetadata?.role as string;
-  const isAgent = userRole === "agent" || userRole === "admin";
+  const userRole = user?.publicMetadata?.role as string
+  const isAgent = userRole === 'agent' || userRole === 'admin'
 
   // Fetch inquiries with filters
   const fetchInquiries = async (newFilters = filters) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const params = new URLSearchParams();
-      
-      // Add filters to params
-      if (newFilters.search) params.append("search", newFilters.search);
-      if (newFilters.status !== "all") params.append("status", newFilters.status);
-      if (newFilters.assignedTo) params.append("assignedTo", newFilters.assignedTo);
-      if (newFilters.propertyId) params.append("propertyId", newFilters.propertyId);
-      params.append("limit", newFilters.limit.toString());
-      params.append("offset", newFilters.offset.toString());
+      const params = new URLSearchParams()
 
-      const response = await fetch(`/api/inquiries?${params.toString()}`);
-      const data = await response.json();
+      // Add filters to params
+      if (newFilters.search) params.append('search', newFilters.search)
+      if (newFilters.status !== 'all') params.append('status', newFilters.status)
+      if (newFilters.assignedTo) params.append('assignedTo', newFilters.assignedTo)
+      if (newFilters.propertyId) params.append('propertyId', newFilters.propertyId)
+      params.append('limit', newFilters.limit.toString())
+      params.append('offset', newFilters.offset.toString())
+
+      const response = await fetch(`/api/inquiries?${params.toString()}`)
+      const data = await response.json()
 
       if (data.success) {
-        setInquiries(data.data || []);
-        setStats(data.stats || stats);
+        setInquiries(data.data || [])
+        setStats(data.stats || stats)
       } else {
-        toast.error("Failed to fetch inquiries");
-        console.error("Inquiries fetch error:", data.error);
+        toast.error('Failed to fetch inquiries')
+        console.error('Inquiries fetch error:', data.error)
       }
     } catch (error) {
-      toast.error("Failed to fetch inquiries");
-      console.error("Inquiries fetch error:", error);
+      toast.error('Failed to fetch inquiries')
+      console.error('Inquiries fetch error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Update inquiry status
   const updateInquiry = async () => {
-    if (!selectedInquiry) return;
+    if (!selectedInquiry) return
 
-    setUpdating(true);
+    setUpdating(true)
     try {
-      const response = await fetch("/api/inquiries", {
-        method: "PUT",
+      const response = await fetch('/api/inquiries', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           inquiryId: selectedInquiry.id,
@@ -188,107 +188,116 @@ export default function InquiriesPage() {
           assignedTo: updateForm.assignedTo || selectedInquiry.assigned_to,
           notes: updateForm.notes || selectedInquiry.notes,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success) {
-        toast.success("Inquiry updated successfully");
-        setShowUpdateDialog(false);
-        setSelectedInquiry(null);
-        setUpdateForm({ status: "", assignedTo: "", notes: "" });
-        fetchInquiries();
+        toast.success('Inquiry updated successfully')
+        setShowUpdateDialog(false)
+        setSelectedInquiry(null)
+        setUpdateForm({ status: '', assignedTo: '', notes: '' })
+        fetchInquiries()
       } else {
-        toast.error("Failed to update inquiry");
+        toast.error('Failed to update inquiry')
       }
     } catch (error) {
-      toast.error("Failed to update inquiry");
-      console.error("Inquiry update error:", error);
+      toast.error('Failed to update inquiry')
+      console.error('Inquiry update error:', error)
     } finally {
-      setUpdating(false);
+      setUpdating(false)
     }
-  };
+  }
 
   // Handle search
   const handleSearch = () => {
-    setFilters(prev => ({ ...prev, offset: 0 }));
-    fetchInquiries({ ...filters, offset: 0 });
-  };
+    setFilters((prev) => ({ ...prev, offset: 0 }))
+    fetchInquiries({ ...filters, offset: 0 })
+  }
 
   // Clear filters
   const clearFilters = () => {
     const clearedFilters = {
-      search: "",
-      status: "all",
-      assignedTo: "",
-      propertyId: "",
+      search: '',
+      status: 'all',
+      assignedTo: '',
+      propertyId: '',
       limit: 25,
       offset: 0,
-    };
-    setFilters(clearedFilters);
-    fetchInquiries(clearedFilters);
-  };
+    }
+    setFilters(clearedFilters)
+    fetchInquiries(clearedFilters)
+  }
 
   // Pagination
   const handlePagination = (direction: 'prev' | 'next') => {
-    const newOffset = direction === 'prev' 
-      ? Math.max(0, filters.offset - filters.limit)
-      : filters.offset + filters.limit;
-    
-    const newFilters = { ...filters, offset: newOffset };
-    setFilters(newFilters);
-    fetchInquiries(newFilters);
-  };
+    const newOffset =
+      direction === 'prev'
+        ? Math.max(0, filters.offset - filters.limit)
+        : filters.offset + filters.limit
+
+    const newFilters = { ...filters, offset: newOffset }
+    setFilters(newFilters)
+    fetchInquiries(newFilters)
+  }
 
   useEffect(() => {
     if (isAgent) {
-      fetchInquiries();
+      fetchInquiries()
     }
-  }, [user]);
+  }, [user])
 
   const formatDateTime = (date: string) => {
     return new Intl.DateTimeFormat('en-US', {
       dateStyle: 'medium',
-      timeStyle: 'short'
-    }).format(new Date(date));
-  };
+      timeStyle: 'short',
+    }).format(new Date(date))
+  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
-    }).format(price);
-  };
+    }).format(price)
+  }
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      new: { variant: "default" as const, icon: AlertCircle, color: "bg-blue-100 text-blue-800" },
-      contacted: { variant: "secondary" as const, icon: MessageCircle, color: "bg-yellow-100 text-yellow-800" },
-      converted: { variant: "default" as const, icon: CheckCircle2, color: "bg-green-100 text-green-800" },
-      closed: { variant: "outline" as const, icon: Clock, color: "bg-gray-100 text-gray-800" }
-    };
+      new: { variant: 'default' as const, icon: AlertCircle, color: 'bg-blue-100 text-blue-800' },
+      contacted: {
+        variant: 'secondary' as const,
+        icon: MessageCircle,
+        color: 'bg-yellow-100 text-yellow-800',
+      },
+      converted: {
+        variant: 'default' as const,
+        icon: CheckCircle2,
+        color: 'bg-green-100 text-green-800',
+      },
+      closed: { variant: 'outline' as const, icon: Clock, color: 'bg-gray-100 text-gray-800' },
+    }
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
-    const Icon = config.icon;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new
+    const Icon = config.icon
 
     return (
       <Badge variant={config.variant} className={config.color}>
         <Icon className="w-3 h-3 mr-1" />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
-    );
-  };
+    )
+  }
 
   const openUpdateDialog = (inquiry: PropertyInquiry) => {
-    setSelectedInquiry(inquiry);
+    setSelectedInquiry(inquiry)
     setUpdateForm({
       status: inquiry.status,
-      assignedTo: inquiry.assigned_to || "",
-      notes: inquiry.notes || "",
-    });
-    setShowUpdateDialog(true);
-  };
+      assignedTo: inquiry.assigned_to || '',
+      notes: inquiry.notes || '',
+    })
+    setShowUpdateDialog(true)
+  }
 
   // Redirect if not agent/admin
   if (!isAgent) {
@@ -302,7 +311,7 @@ export default function InquiriesPage() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   return (
@@ -311,14 +320,10 @@ export default function InquiriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Property Inquiries</h1>
-          <p className="text-muted-foreground">
-            Manage customer inquiries and lead responses
-          </p>
+          <p className="text-muted-foreground">Manage customer inquiries and lead responses</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            {userRole}
-          </Badge>
+          <Badge variant="outline">{userRole}</Badge>
           <Button onClick={() => fetchInquiries()} disabled={loading} size="sm" variant="outline">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -339,7 +344,7 @@ export default function InquiriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -351,7 +356,7 @@ export default function InquiriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -363,7 +368,7 @@ export default function InquiriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -375,7 +380,7 @@ export default function InquiriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -387,7 +392,7 @@ export default function InquiriesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -418,13 +423,13 @@ export default function InquiriesPage() {
               <Input
                 placeholder="Search by customer name, email, property title, or message..."
                 value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
             <Select
               value={filters.status}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+              onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value }))}
             >
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
@@ -444,14 +449,14 @@ export default function InquiriesPage() {
               <Input
                 placeholder="Property ID (optional)"
                 value={filters.propertyId}
-                onChange={(e) => setFilters(prev => ({ ...prev, propertyId: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, propertyId: e.target.value }))}
               />
             </div>
             <div className="flex-1">
               <Input
                 placeholder="Assigned to (user ID)"
                 value={filters.assignedTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, assignedTo: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, assignedTo: e.target.value }))}
               />
             </div>
           </div>
@@ -517,7 +522,8 @@ export default function InquiriesPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            {inquiry.properties.custom_code || `Property ${inquiry.properties.ilist_id}`}
+                            {inquiry.properties.custom_code ||
+                              `Property ${inquiry.properties.ilist_id}`}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
@@ -544,21 +550,19 @@ export default function InquiriesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
-                          {inquiry.source === "website" ? (
+                          {inquiry.source === 'website' ? (
                             <Globe className="h-4 w-4 text-blue-600" />
                           ) : (
                             <Smartphone className="h-4 w-4 text-gray-600" />
                           )}
-                          <span>{inquiry.source || "Unknown"}</span>
+                          <span>{inquiry.source || 'Unknown'}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
                           <p>{formatDateTime(inquiry.created_at)}</p>
                           {inquiry.ip_address && (
-                            <p className="text-muted-foreground">
-                              IP: {inquiry.ip_address}
-                            </p>
+                            <p className="text-muted-foreground">IP: {inquiry.ip_address}</p>
                           )}
                         </div>
                       </TableCell>
@@ -587,29 +591,57 @@ export default function InquiriesPage() {
                                     <div>
                                       <h4 className="font-semibold mb-2">Customer Details</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Name:</strong> {selectedInquiry.name}</p>
-                                        <p><strong>Email:</strong> {selectedInquiry.email}</p>
-                                        {selectedInquiry.phone && <p><strong>Phone:</strong> {selectedInquiry.phone}</p>}
-                                        <p><strong>Status:</strong> {selectedInquiry.status}</p>
+                                        <p>
+                                          <strong>Name:</strong> {selectedInquiry.name}
+                                        </p>
+                                        <p>
+                                          <strong>Email:</strong> {selectedInquiry.email}
+                                        </p>
+                                        {selectedInquiry.phone && (
+                                          <p>
+                                            <strong>Phone:</strong> {selectedInquiry.phone}
+                                          </p>
+                                        )}
+                                        <p>
+                                          <strong>Status:</strong> {selectedInquiry.status}
+                                        </p>
                                         {selectedInquiry.assigned_to && (
-                                          <p><strong>Assigned to:</strong> {selectedInquiry.assigned_to}</p>
+                                          <p>
+                                            <strong>Assigned to:</strong>{' '}
+                                            {selectedInquiry.assigned_to}
+                                          </p>
                                         )}
                                       </div>
                                     </div>
                                     <div>
                                       <h4 className="font-semibold mb-2">Property Details</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Code:</strong> {selectedInquiry.properties.custom_code || "N/A"}</p>
-                                        <p><strong>iList ID:</strong> {selectedInquiry.properties.ilist_id}</p>
-                                        <p><strong>Price:</strong> {formatPrice(selectedInquiry.properties.price)}</p>
-                                        <p><strong>Area ID:</strong> {selectedInquiry.properties.area_id}</p>
+                                        <p>
+                                          <strong>Code:</strong>{' '}
+                                          {selectedInquiry.properties.custom_code || 'N/A'}
+                                        </p>
+                                        <p>
+                                          <strong>iList ID:</strong>{' '}
+                                          {selectedInquiry.properties.ilist_id}
+                                        </p>
+                                        <p>
+                                          <strong>Price:</strong>{' '}
+                                          {formatPrice(selectedInquiry.properties.price)}
+                                        </p>
+                                        <p>
+                                          <strong>Area ID:</strong>{' '}
+                                          {selectedInquiry.properties.area_id}
+                                        </p>
                                         {selectedInquiry.properties.partner_name && (
-                                          <p><strong>Agent:</strong> {selectedInquiry.properties.partner_name}</p>
+                                          <p>
+                                            <strong>Agent:</strong>{' '}
+                                            {selectedInquiry.properties.partner_name}
+                                          </p>
                                         )}
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   {selectedInquiry.message && (
                                     <div>
                                       <h4 className="font-semibold mb-2">Message</h4>
@@ -631,13 +663,31 @@ export default function InquiriesPage() {
                                   <div>
                                     <h4 className="font-semibold mb-2">Technical Details</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <p><strong>Source:</strong> {selectedInquiry.source || "Unknown"}</p>
-                                      <p><strong>IP Address:</strong> {selectedInquiry.ip_address || "N/A"}</p>
-                                      <p><strong>User Agent:</strong> {selectedInquiry.user_agent || "N/A"}</p>
-                                      <p><strong>Referrer:</strong> {selectedInquiry.referrer || "N/A"}</p>
-                                      <p><strong>Created:</strong> {formatDateTime(selectedInquiry.created_at)}</p>
+                                      <p>
+                                        <strong>Source:</strong>{' '}
+                                        {selectedInquiry.source || 'Unknown'}
+                                      </p>
+                                      <p>
+                                        <strong>IP Address:</strong>{' '}
+                                        {selectedInquiry.ip_address || 'N/A'}
+                                      </p>
+                                      <p>
+                                        <strong>User Agent:</strong>{' '}
+                                        {selectedInquiry.user_agent || 'N/A'}
+                                      </p>
+                                      <p>
+                                        <strong>Referrer:</strong>{' '}
+                                        {selectedInquiry.referrer || 'N/A'}
+                                      </p>
+                                      <p>
+                                        <strong>Created:</strong>{' '}
+                                        {formatDateTime(selectedInquiry.created_at)}
+                                      </p>
                                       {selectedInquiry.updated_at && (
-                                        <p><strong>Updated:</strong> {formatDateTime(selectedInquiry.updated_at)}</p>
+                                        <p>
+                                          <strong>Updated:</strong>{' '}
+                                          {formatDateTime(selectedInquiry.updated_at)}
+                                        </p>
                                       )}
                                     </div>
                                   </div>
@@ -661,13 +711,17 @@ export default function InquiriesPage() {
                                       Update Inquiry
                                     </Button>
                                     <Button asChild size="sm" variant="outline">
-                                      <Link href={`/dashboard/properties?search=${selectedInquiry.properties.ilist_id}`}>
+                                      <Link
+                                        href={`/dashboard/properties?search=${selectedInquiry.properties.ilist_id}`}
+                                      >
                                         <ExternalLink className="h-3 w-3 mr-1" />
                                         View Property
                                       </Link>
                                     </Button>
                                     <Button asChild size="sm" variant="outline">
-                                      <a href={`mailto:${selectedInquiry.email}?subject=Re: Property Inquiry - ${selectedInquiry.properties.ilist_id}&body=Dear ${selectedInquiry.name},%0D%0A%0D%0AThank you for your inquiry about property ${selectedInquiry.properties.ilist_id}.%0D%0A%0D%0A`}>
+                                      <a
+                                        href={`mailto:${selectedInquiry.email}?subject=Re: Property Inquiry - ${selectedInquiry.properties.ilist_id}&body=Dear ${selectedInquiry.name},%0D%0A%0D%0AThank you for your inquiry about property ${selectedInquiry.properties.ilist_id}.%0D%0A%0D%0A`}
+                                      >
                                         <Mail className="h-3 w-3 mr-1" />
                                         Reply by Email
                                       </a>
@@ -677,7 +731,7 @@ export default function InquiriesPage() {
                               )}
                             </DialogContent>
                           </Dialog>
-                          
+
                           <Button
                             size="sm"
                             variant="default"
@@ -695,7 +749,8 @@ export default function InquiriesPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filters.offset + 1} to {Math.min(filters.offset + filters.limit, stats.total)} of {stats.total} inquiries
+                  Showing {filters.offset + 1} to{' '}
+                  {Math.min(filters.offset + filters.limit, stats.total)} of {stats.total} inquiries
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -733,9 +788,9 @@ export default function InquiriesPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={updateForm.status} 
-                onValueChange={(value) => setUpdateForm(prev => ({ ...prev, status: value }))}
+              <Select
+                value={updateForm.status}
+                onValueChange={(value) => setUpdateForm((prev) => ({ ...prev, status: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -755,7 +810,7 @@ export default function InquiriesPage() {
                 id="assignedTo"
                 placeholder="Enter user ID or leave empty"
                 value={updateForm.assignedTo}
-                onChange={(e) => setUpdateForm(prev => ({ ...prev, assignedTo: e.target.value }))}
+                onChange={(e) => setUpdateForm((prev) => ({ ...prev, assignedTo: e.target.value }))}
               />
             </div>
 
@@ -765,7 +820,7 @@ export default function InquiriesPage() {
                 id="notes"
                 placeholder="Add internal notes about this inquiry..."
                 value={updateForm.notes}
-                onChange={(e) => setUpdateForm(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) => setUpdateForm((prev) => ({ ...prev, notes: e.target.value }))}
                 rows={3}
               />
             </div>
@@ -789,5 +844,5 @@ export default function InquiriesPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

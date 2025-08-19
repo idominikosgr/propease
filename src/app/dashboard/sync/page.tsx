@@ -1,42 +1,42 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
-import { 
-  RefreshCw, 
-  Database, 
-  Settings, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  RefreshCw,
+  Database,
+  Settings,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
   Zap,
   Globe,
   Calendar,
@@ -45,56 +45,56 @@ import {
   Copy,
   TestTube,
   PlayCircle,
-  StopCircle
-} from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
+  StopCircle,
+} from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Progress } from '@/components/ui/progress'
+import { toast } from 'sonner'
 
 interface SyncSession {
-  id: string;
-  sync_type: string;
-  status: string;
-  started_at: string;
-  completed_at?: string;
-  duration_seconds?: number;
-  total_properties?: number;
-  new_properties?: number;
-  updated_properties?: number;
-  deleted_properties?: number;
-  failed_properties?: number;
-  error_message?: string;
+  id: string
+  sync_type: string
+  status: string
+  started_at: string
+  completed_at?: string
+  duration_seconds?: number
+  total_properties?: number
+  new_properties?: number
+  updated_properties?: number
+  deleted_properties?: number
+  failed_properties?: number
+  error_message?: string
 }
 
 interface SyncStats {
-  lastSync?: SyncSession;
-  totalSessions?: number;
-  successfulSyncs?: number;
-  failedSyncs?: number;
-  totalPropertiesSynced?: number;
+  lastSync?: SyncSession
+  totalSessions?: number
+  successfulSyncs?: number
+  failedSyncs?: number
+  totalPropertiesSynced?: number
 }
 
 export default function SyncHubPage() {
-  const { user } = useUser();
-  const [loading, setLoading] = useState(false);
-  const [connectionTesting, setConnectionTesting] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncStats, setSyncStats] = useState<SyncStats>({});
-  const [syncHistory, setSyncHistory] = useState<SyncSession[]>([]);
-  
+  const { user } = useUser()
+  const [loading, setLoading] = useState(false)
+  const [connectionTesting, setConnectionTesting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncStats, setSyncStats] = useState<SyncStats>({})
+  const [syncHistory, setSyncHistory] = useState<SyncSession[]>([])
+
   // Sync configuration
-  const [authToken, setAuthToken] = useState("");
-  const [syncType, setSyncType] = useState<"full" | "incremental">("incremental");
-  const [includeDeleted, setIncludeDeleted] = useState(true);
-  
+  const [authToken, setAuthToken] = useState('')
+  const [syncType, setSyncType] = useState<'full' | 'incremental'>('incremental')
+  const [includeDeleted, setIncludeDeleted] = useState(true)
+
   // Webhook configuration
-  const [webhookUrl, setWebhookUrl] = useState("");
-  const [webhookSecret, setWebhookSecret] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [webhookSecret, setWebhookSecret] = useState('')
 
   // Check user role
-  const userRole = user?.publicMetadata?.role as string;
-  const isAgent = userRole === "agent" || userRole === "admin";
+  const userRole = user?.publicMetadata?.role as string
+  const isAgent = userRole === 'agent' || userRole === 'admin'
 
   // Redirect if not agent/admin
   if (!isAgent) {
@@ -108,82 +108,81 @@ export default function SyncHubPage() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   // Fetch sync status and history
   const fetchSyncData = async () => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       const [syncResponse, scheduledResponse, debugResponse] = await Promise.all([
         fetch('/api/ilist/sync'),
         fetch('/api/ilist/scheduled-sync'),
         fetch('/api/debug/properties'),
-      ]);
+      ])
 
-      const syncData = await syncResponse.json();
-      const scheduledData = await scheduledResponse.json();
-      const debugData = await debugResponse.json();
+      const syncData = await syncResponse.json()
+      const scheduledData = await scheduledResponse.json()
+      const debugData = await debugResponse.json()
 
       // Set sync stats
       setSyncStats({
         lastSync: debugData.debug?.recentSyncSessions?.[0] || syncData.latestSync,
         ...scheduledData,
-      });
+      })
 
       // Set sync history
-      setSyncHistory(debugData.debug?.recentSyncSessions || []);
-
+      setSyncHistory(debugData.debug?.recentSyncSessions || [])
     } catch (error) {
-      console.error("Failed to fetch sync data:", error);
-      toast.error("Failed to load sync data");
+      console.error('Failed to fetch sync data:', error)
+      toast.error('Failed to load sync data')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Test iList connection
   const testConnection = async () => {
     if (!authToken.trim()) {
-      toast.error("Please enter an auth token");
-      return;
+      toast.error('Please enter an auth token')
+      return
     }
 
     try {
-      setConnectionTesting(true);
+      setConnectionTesting(true)
       const response = await fetch('/api/ilist/test-connection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ authToken }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success && data.connected) {
-        toast.success("iList connection successful!");
+        toast.success('iList connection successful!')
       } else {
-        toast.error(data.error || "Connection failed");
+        toast.error(data.error || 'Connection failed')
       }
     } catch (error) {
-      toast.error("Connection test failed");
-      console.error("Connection test error:", error);
+      toast.error('Connection test failed')
+      console.error('Connection test error:', error)
     } finally {
-      setConnectionTesting(false);
+      setConnectionTesting(false)
     }
-  };
+  }
 
   // Perform manual sync
   const performSync = async () => {
     if (!authToken.trim()) {
-      toast.error("Please enter an auth token and test connection first");
-      return;
+      toast.error('Please enter an auth token and test connection first')
+      return
     }
 
     try {
-      setSyncing(true);
+      setSyncing(true)
       const response = await fetch('/api/ilist/sync', {
         method: 'POST',
         headers: {
@@ -194,77 +193,103 @@ export default function SyncHubPage() {
           syncType,
           includeDeleted,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success) {
-        toast.success(`Sync completed! ${data.stats?.new || 0} new, ${data.stats?.updated || 0} updated properties`);
-        fetchSyncData(); // Refresh data
+        toast.success(
+          `Sync completed! ${data.stats?.new || 0} new, ${data.stats?.updated || 0} updated properties`
+        )
+        fetchSyncData() // Refresh data
       } else {
-        toast.error(data.error || "Sync failed");
+        toast.error(data.error || 'Sync failed')
       }
     } catch (error) {
-      toast.error("Sync failed");
-      console.error("Sync error:", error);
+      toast.error('Sync failed')
+      console.error('Sync error:', error)
     } finally {
-      setSyncing(false);
+      setSyncing(false)
     }
-  };
+  }
 
   // Configure webhook
   const configureWebhook = async () => {
     try {
       // First get webhook URL info
-      const infoResponse = await fetch('/api/ilist/webhook-config');
-      const infoData = await infoResponse.json();
+      const infoResponse = await fetch('/api/ilist/webhook-config')
+      const infoData = await infoResponse.json()
 
       if (infoData.success) {
-        setWebhookUrl(infoData.webhookUrl);
-        toast.success("Webhook configuration retrieved");
+        setWebhookUrl(infoData.webhookUrl)
+        toast.success('Webhook configuration retrieved')
       }
     } catch (error) {
-      toast.error("Failed to get webhook configuration");
-      console.error("Webhook config error:", error);
+      toast.error('Failed to get webhook configuration')
+      console.error('Webhook config error:', error)
     }
-  };
+  }
 
   // Copy webhook URL to clipboard
   const copyWebhookUrl = () => {
-    navigator.clipboard.writeText(webhookUrl);
-    toast.success("Webhook URL copied to clipboard");
-  };
+    navigator.clipboard.writeText(webhookUrl)
+    toast.success('Webhook URL copied to clipboard')
+  }
 
   useEffect(() => {
-    fetchSyncData();
-    configureWebhook();
-    
+    fetchSyncData()
+    configureWebhook()
+
     // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchSyncData, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+    const interval = setInterval(fetchSyncData, 30000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const getSyncStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-600';
-      case 'failed': return 'text-red-600';
-      case 'syncing': return 'text-yellow-600';
-      default: return 'text-gray-600';
+      case 'completed':
+        return 'text-green-600'
+      case 'failed':
+        return 'text-red-600'
+      case 'syncing':
+        return 'text-yellow-600'
+      default:
+        return 'text-gray-600'
     }
-  };
+  }
 
   const getSyncStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Completed</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Completed
+          </Badge>
+        )
       case 'failed':
-        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Failed</Badge>;
+        return (
+          <Badge variant="destructive">
+            <AlertCircle className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        )
       case 'syncing':
-        return <Badge className="bg-yellow-100 text-yellow-800"><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Syncing</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+            Syncing
+          </Badge>
+        )
       default:
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Unknown</Badge>;
+        return (
+          <Badge variant="outline">
+            <Clock className="w-3 h-3 mr-1" />
+            Unknown
+          </Badge>
+        )
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -277,9 +302,7 @@ export default function SyncHubPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            {userRole}
-          </Badge>
+          <Badge variant="outline">{userRole}</Badge>
           <Button onClick={fetchSyncData} disabled={loading} size="sm" variant="outline">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -300,7 +323,7 @@ export default function SyncHubPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -312,7 +335,7 @@ export default function SyncHubPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -324,14 +347,16 @@ export default function SyncHubPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Clock className="h-8 w-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold">
-                  {syncStats.lastSync ? new Date(syncStats.lastSync.started_at).toLocaleDateString() : 'Never'}
+                  {syncStats.lastSync
+                    ? new Date(syncStats.lastSync.started_at).toLocaleDateString()
+                    : 'Never'}
                 </p>
                 <p className="text-sm text-muted-foreground">Last Sync</p>
               </div>
@@ -342,19 +367,24 @@ export default function SyncHubPage() {
 
       {/* Last Sync Status */}
       {syncStats.lastSync && (
-        <Alert className={`border-l-4 ${
-          syncStats.lastSync.status === 'completed' ? 'border-l-green-500' :
-          syncStats.lastSync.status === 'failed' ? 'border-l-red-500' :
-          'border-l-yellow-500'
-        }`}>
+        <Alert
+          className={`border-l-4 ${
+            syncStats.lastSync.status === 'completed'
+              ? 'border-l-green-500'
+              : syncStats.lastSync.status === 'failed'
+                ? 'border-l-red-500'
+                : 'border-l-yellow-500'
+          }`}
+        >
           <Database className="h-4 w-4" />
           <AlertTitle>Latest Sync Status</AlertTitle>
           <AlertDescription>
             <div className="flex items-center justify-between">
               <div>
-                {getSyncStatusBadge(syncStats.lastSync.status)} • 
-                {syncStats.lastSync.total_properties || 0} properties processed • 
-                {syncStats.lastSync.new_properties || 0} new, {syncStats.lastSync.updated_properties || 0} updated
+                {getSyncStatusBadge(syncStats.lastSync.status)} •
+                {syncStats.lastSync.total_properties || 0} properties processed •
+                {syncStats.lastSync.new_properties || 0} new,{' '}
+                {syncStats.lastSync.updated_properties || 0} updated
               </div>
               <div className="text-sm text-muted-foreground">
                 {new Date(syncStats.lastSync.started_at).toLocaleString()}
@@ -383,9 +413,7 @@ export default function SyncHubPage() {
                 <PlayCircle className="h-5 w-5" />
                 Manual Synchronization
               </CardTitle>
-              <CardDescription>
-                Manually trigger a sync with iList CRM
-              </CardDescription>
+              <CardDescription>Manually trigger a sync with iList CRM</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -402,7 +430,10 @@ export default function SyncHubPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Sync Type</Label>
-                  <Select value={syncType} onValueChange={(value: "full" | "incremental") => setSyncType(value)}>
+                  <Select
+                    value={syncType}
+                    onValueChange={(value: 'full' | 'incremental') => setSyncType(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -414,7 +445,10 @@ export default function SyncHubPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Include Deleted Properties</Label>
-                  <Select value={includeDeleted.toString()} onValueChange={(value) => setIncludeDeleted(value === "true")}>
+                  <Select
+                    value={includeDeleted.toString()}
+                    onValueChange={(value) => setIncludeDeleted(value === 'true')}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -432,14 +466,13 @@ export default function SyncHubPage() {
                   disabled={connectionTesting || !authToken.trim()}
                   variant="outline"
                 >
-                  <TestTube className={`h-4 w-4 mr-2 ${connectionTesting ? 'animate-pulse' : ''}`} />
+                  <TestTube
+                    className={`h-4 w-4 mr-2 ${connectionTesting ? 'animate-pulse' : ''}`}
+                  />
                   {connectionTesting ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button
-                  onClick={performSync}
-                  disabled={syncing || !authToken.trim()}
-                >
+
+                <Button onClick={performSync} disabled={syncing || !authToken.trim()}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
                   {syncing ? 'Syncing...' : 'Start Sync'}
                 </Button>
@@ -475,7 +508,8 @@ export default function SyncHubPage() {
                 <Calendar className="h-4 w-4" />
                 <AlertTitle>Recommended Schedule</AlertTitle>
                 <AlertDescription>
-                  Run incremental sync every 15 minutes during business hours for optimal performance.
+                  Run incremental sync every 15 minutes during business hours for optimal
+                  performance.
                 </AlertDescription>
               </Alert>
 
@@ -484,25 +518,30 @@ export default function SyncHubPage() {
                   <h4 className="font-semibold mb-2">Cron Job Configuration</h4>
                   <div className="bg-muted p-4 rounded-lg font-mono text-sm">
                     <p># Run every 15 minutes during business hours (9 AM - 6 PM)</p>
-                    <p>*/15 9-18 * * 1-5 curl -X POST "https://yourdomain.com/api/ilist/scheduled-sync" \</p>
-                    <p>  -H "Content-Type: application/json" \</p>
-                    <p>  -H "x-cron-secret: your-cron-secret" \</p>
-                    <p>  -d '{`{"syncType": "incremental", "includeDeleted": true}`}'</p>
+                    <p>
+                      */15 9-18 * * 1-5 curl -X POST
+                      "https://yourdomain.com/api/ilist/scheduled-sync" \
+                    </p>
+                    <p> -H "Content-Type: application/json" \</p>
+                    <p> -H "x-cron-secret: your-cron-secret" \</p>
+                    <p> -d '{`{"syncType": "incremental", "includeDeleted": true}`}'</p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">API Endpoint</h4>
                   <div className="flex items-center gap-2">
-                    <Input
-                      readOnly
-                      value="/api/ilist/scheduled-sync"
-                      className="font-mono"
-                    />
-                    <Button size="sm" variant="outline" onClick={() => {
-                      navigator.clipboard.writeText(window.location.origin + "/api/ilist/scheduled-sync");
-                      toast.success("API endpoint copied to clipboard");
-                    }}>
+                    <Input readOnly value="/api/ilist/scheduled-sync" className="font-mono" />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          window.location.origin + '/api/ilist/scheduled-sync'
+                        )
+                        toast.success('API endpoint copied to clipboard')
+                      }}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -520,9 +559,7 @@ export default function SyncHubPage() {
                 <Globe className="h-5 w-5" />
                 Webhook Configuration
               </CardTitle>
-              <CardDescription>
-                Set up real-time sync with iList webhooks
-              </CardDescription>
+              <CardDescription>Set up real-time sync with iList webhooks</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -553,10 +590,10 @@ export default function SyncHubPage() {
                   <Label>Supported Events</Label>
                   <div className="mt-2 space-y-2">
                     {[
-                      "property.created",
-                      "property.updated", 
-                      "property.deleted",
-                      "property.status_changed"
+                      'property.created',
+                      'property.updated',
+                      'property.deleted',
+                      'property.status_changed',
                     ].map((event) => (
                       <div key={event} className="flex items-center gap-2">
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -570,7 +607,8 @@ export default function SyncHubPage() {
                   <Zap className="h-4 w-4" />
                   <AlertTitle>Real-time Updates</AlertTitle>
                   <AlertDescription>
-                    Once configured, properties will be automatically synchronized whenever changes occur in iList CRM.
+                    Once configured, properties will be automatically synchronized whenever changes
+                    occur in iList CRM.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -586,9 +624,7 @@ export default function SyncHubPage() {
                 <BarChart3 className="h-5 w-5" />
                 Sync History
               </CardTitle>
-              <CardDescription>
-                View detailed history of all sync operations
-              </CardDescription>
+              <CardDescription>View detailed history of all sync operations</CardDescription>
             </CardHeader>
             <CardContent>
               {syncHistory.length === 0 ? (
@@ -613,9 +649,7 @@ export default function SyncHubPage() {
                         <TableCell>
                           <Badge variant="outline">{session.sync_type}</Badge>
                         </TableCell>
-                        <TableCell>
-                          {getSyncStatusBadge(session.status)}
-                        </TableCell>
+                        <TableCell>{getSyncStatusBadge(session.status)}</TableCell>
                         <TableCell>
                           <div>
                             <p className="text-sm">
@@ -629,17 +663,21 @@ export default function SyncHubPage() {
                         <TableCell>
                           {session.duration_seconds ? `${session.duration_seconds}s` : '-'}
                         </TableCell>
-                        <TableCell>
-                          {session.total_properties || 0}
-                        </TableCell>
+                        <TableCell>{session.total_properties || 0}</TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <div className="flex items-center gap-4">
                               <span className="text-green-600">+{session.new_properties || 0}</span>
-                              <span className="text-blue-600">~{session.updated_properties || 0}</span>
-                              <span className="text-red-600">-{session.deleted_properties || 0}</span>
+                              <span className="text-blue-600">
+                                ~{session.updated_properties || 0}
+                              </span>
+                              <span className="text-red-600">
+                                -{session.deleted_properties || 0}
+                              </span>
                               {(session.failed_properties || 0) > 0 && (
-                                <span className="text-orange-600">!{session.failed_properties}</span>
+                                <span className="text-orange-600">
+                                  !{session.failed_properties}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -654,5 +692,5 @@ export default function SyncHubPage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

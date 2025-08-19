@@ -1,10 +1,10 @@
-import { TESTIMONIALS } from "@/constants";
-import { Star } from "lucide-react";
-import Image from "next/image";
-import AnimationContainer from "./global/animation-container";
-import Wrapper from "./global/wrapper";
-import Marquee from "./ui/marquee";
-import SectionBadge from "./ui/section-badge";
+import { TESTIMONIALS } from '@/constants'
+import { Star } from 'lucide-react'
+import Image from 'next/image'
+import AnimationContainer from './global/animation-container'
+import Wrapper from './global/wrapper'
+import Marquee from './ui/marquee'
+import SectionBadge from './ui/section-badge'
 
 const Testimonials = () => {
   return (
@@ -24,8 +24,7 @@ const Testimonials = () => {
 
         <AnimationContainer animation="fadeUp" delay={0.4}>
           <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-            See what our users have to say about their experience with our
-            platform
+            See what our users have to say about their experience with our platform
           </p>
         </AnimationContainer>
       </div>
@@ -37,17 +36,10 @@ const Testimonials = () => {
 
           <Marquee className="[--gap:1.5rem]" pauseOnHover>
             {TESTIMONIALS.map((testimonial, index) => (
-              <AnimationContainer
-                key={index}
-                animation="fadeUp"
-                delay={0.6 + index * 0.1}
-              >
+              <AnimationContainer key={index} animation="fadeUp" delay={0.6 + index * 0.1}>
                 <div className="shrink-0 w-[400px] rounded-3xl bg-[#191919] backdrop-blur-3xl p-8">
                   <div className="flex flex-col gap-6">
-                    <AnimationContainer
-                      animation="fadeRight"
-                      delay={0.7 + index * 0.1}
-                    >
+                    <AnimationContainer animation="fadeRight" delay={0.7 + index * 0.1}>
                       <div className="flex items-center gap-4">
                         <div className="relative w-12 h-12 rounded-full overflow-hidden">
                           <Image
@@ -59,30 +51,19 @@ const Testimonials = () => {
                         </div>
                         <div>
                           <h4 className="font-medium">{testimonial.author}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {testimonial.role}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                         </div>
                       </div>
                     </AnimationContainer>
 
-                    <AnimationContainer
-                      animation="fadeUp"
-                      delay={0.8 + index * 0.1}
-                    >
+                    <AnimationContainer animation="fadeUp" delay={0.8 + index * 0.1}>
                       <p className="text-lg">"{testimonial.content}"</p>
                     </AnimationContainer>
 
-                    <AnimationContainer
-                      animation="fadeUp"
-                      delay={0.9 + index * 0.1}
-                    >
+                    <AnimationContainer animation="fadeUp" delay={0.9 + index * 0.1}>
                       <div className="flex gap-1">
                         {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className="w-5 h-5 fill-primary text-primary"
-                          />
+                          <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                         ))}
                       </div>
                     </AnimationContainer>
@@ -94,7 +75,7 @@ const Testimonials = () => {
         </div>
       </AnimationContainer>
     </Wrapper>
-  );
-};
+  )
+}
 
-export default Testimonials;
+export default Testimonials

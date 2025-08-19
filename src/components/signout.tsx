@@ -1,12 +1,12 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { useClerk } from "@clerk/nextjs";
+import { Button } from '@/components/ui/button'
+import { useClerk } from '@clerk/nextjs'
 
 const SignOut = () => {
-  const { signOut } = useClerk();
+  const { signOut } = useClerk()
 
-  return <Button onClick={() => signOut()}>Sign Out</Button>;
-};
+  return <Button onClick={() => signOut()}>Sign Out</Button>
+}
 
-export default SignOut;
+export default SignOut

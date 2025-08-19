@@ -1,176 +1,176 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
-import { 
-  MapPinIcon, 
-  HomeIcon, 
-  RulerIcon, 
-  CalendarIcon, 
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Label } from '@/components/ui/label'
+import {
+  MapPinIcon,
+  HomeIcon,
+  RulerIcon,
+  CalendarIcon,
   CameraIcon,
   ArrowLeftIcon,
   PhoneIcon,
   MailIcon,
   MessageSquareIcon,
-  CheckIcon
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { toast } from "sonner";
-import { useParams } from "next/navigation";
+  CheckIcon,
+} from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { useParams } from 'next/navigation'
 
 interface PropertyImage {
-  id: number;
-  url: string;
-  order_num: number;
-  description?: string;
+  id: number
+  url: string
+  order_num: number
+  description?: string
 }
 
 interface PropertyCharacteristic {
-  id: number;
-  title: string;
-  value: string;
-  language_id: number;
+  id: number
+  title: string
+  value: string
+  language_id: number
 }
 
 interface Property {
-  id: number;
-  code: string;
-  price: number;
-  rooms: number;
-  sqr_meters: number;
-  area_name: string;
-  subarea_name: string;
-  category_name: string;
-  subcategory_name: string;
-  energy_class_name: string;
-  floor: number;
-  bathrooms: number;
-  construction_year: number;
-  title: string;
-  description: string;
-  adText: string;
-  primaryImage: string;
-  imageCount: number;
-  partnerName: string;
-  images: PropertyImage[];
-  characteristics: PropertyCharacteristic[];
-  update_date: string;
-  latitude?: number;
-  longitude?: number;
+  id: number
+  code: string
+  price: number
+  rooms: number
+  sqr_meters: number
+  area_name: string
+  subarea_name: string
+  category_name: string
+  subcategory_name: string
+  energy_class_name: string
+  floor: number
+  bathrooms: number
+  construction_year: number
+  title: string
+  description: string
+  adText: string
+  primaryImage: string
+  imageCount: number
+  partnerName: string
+  images: PropertyImage[]
+  characteristics: PropertyCharacteristic[]
+  update_date: string
+  latitude?: number
+  longitude?: number
 }
 
 interface PropertyResponse {
-  success: boolean;
-  data: Property;
+  success: boolean
+  data: Property
 }
 
 interface InquiryFormData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
+  name: string
+  email: string
+  phone: string
+  message: string
 }
 
 export default function PropertyDetailsPage() {
-  const params = useParams();
-  const propertyId = params.id as string;
-  
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const params = useParams()
+  const propertyId = params.id as string
+
+  const [property, setProperty] = useState<Property | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [inquiryForm, setInquiryForm] = useState<InquiryFormData>({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-  const [submittingInquiry, setSubmittingInquiry] = useState(false);
-  const [inquirySubmitted, setInquirySubmitted] = useState(false);
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  })
+  const [submittingInquiry, setSubmittingInquiry] = useState(false)
+  const [inquirySubmitted, setInquirySubmitted] = useState(false)
 
   const fetchProperty = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`/api/properties/${propertyId}`);
-      const result: PropertyResponse = await response.json();
+      setLoading(true)
+      const response = await fetch(`/api/properties/${propertyId}`)
+      const result: PropertyResponse = await response.json()
 
       if (result.success) {
-        setProperty(result.data);
+        setProperty(result.data)
         // Set initial message
-        setInquiryForm(prev => ({
+        setInquiryForm((prev) => ({
           ...prev,
-          message: `Hello! I'm interested in the property "${result.data.title}" (Ref: ${result.data.code}). Could you please provide more information?`
-        }));
+          message: `Hello! I'm interested in the property "${result.data.title}" (Ref: ${result.data.code}). Could you please provide more information?`,
+        }))
       } else {
-        toast.error("Property not found");
+        toast.error('Property not found')
       }
     } catch (error) {
-      console.error("Error fetching property:", error);
-      toast.error("Failed to load property details");
+      console.error('Error fetching property:', error)
+      toast.error('Failed to load property details')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!inquiryForm.name || !inquiryForm.email) {
-      toast.error("Please fill in your name and email");
-      return;
+    e.preventDefault()
+
+    if (!(inquiryForm.name && inquiryForm.email)) {
+      toast.error('Please fill in your name and email')
+      return
     }
 
     try {
-      setSubmittingInquiry(true);
-      
+      setSubmittingInquiry(true)
+
       const response = await fetch(`/api/properties/${propertyId}/inquire`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(inquiryForm),
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        setInquirySubmitted(true);
-        toast.success("Your inquiry has been submitted successfully!");
+        setInquirySubmitted(true)
+        toast.success('Your inquiry has been submitted successfully!')
       } else {
-        toast.error(result.error || "Failed to submit inquiry");
+        toast.error(result.error || 'Failed to submit inquiry')
       }
     } catch (error) {
-      console.error("Error submitting inquiry:", error);
-      toast.error("Failed to submit inquiry");
+      console.error('Error submitting inquiry:', error)
+      toast.error('Failed to submit inquiry')
     } finally {
-      setSubmittingInquiry(false);
+      setSubmittingInquiry(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (propertyId) {
-      fetchProperty();
+      fetchProperty()
     }
-  }, [propertyId]);
+  }, [propertyId])
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("el-GR", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('el-GR', {
+      style: 'currency',
+      currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
-  };
+    }).format(price)
+  }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB");
-  };
+    return new Date(dateString).toLocaleDateString('en-GB')
+  }
 
   if (loading) {
     return (
@@ -189,7 +189,7 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!property) {
@@ -211,10 +211,10 @@ export default function PropertyDetailsPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  const displayImages = property.images?.length > 0 ? property.images : [];
+  const displayImages = property.images?.length > 0 ? property.images : []
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,8 +243,8 @@ export default function PropertyDetailsPage() {
                       fill
                       className="object-cover"
                       onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
                       }}
                     />
                     {displayImages.length > 1 && (
@@ -253,7 +253,7 @@ export default function PropertyDetailsPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {displayImages.length > 1 && (
                     <div className="flex gap-2 overflow-x-auto pb-2">
                       {displayImages.map((image, index) => (
@@ -261,9 +261,9 @@ export default function PropertyDetailsPage() {
                           key={image.id}
                           onClick={() => setCurrentImageIndex(index)}
                           className={`relative flex-shrink-0 w-20 h-16 rounded-md overflow-hidden border-2 transition-colors ${
-                            index === currentImageIndex 
-                              ? "border-primary" 
-                              : "border-transparent hover:border-muted-foreground"
+                            index === currentImageIndex
+                              ? 'border-primary'
+                              : 'border-transparent hover:border-muted-foreground'
                           }`}
                         >
                           <Image
@@ -293,17 +293,13 @@ export default function PropertyDetailsPage() {
                     <MapPinIcon className="w-4 h-4 mr-1" />
                     {property.subarea_name}, {property.area_name}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Reference: {property.code}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Reference: {property.code}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-primary">
                     {formatPrice(property.price)}
                   </div>
-                  <Badge variant="secondary">
-                    {property.category_name}
-                  </Badge>
+                  <Badge variant="secondary">{property.category_name}</Badge>
                 </div>
               </div>
 
@@ -339,9 +335,11 @@ export default function PropertyDetailsPage() {
               {property.description && (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-3">Description</h2>
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none text-muted-foreground"
-                    dangerouslySetInnerHTML={{ __html: property.description.replace(/\n/g, '<br>') }}
+                    dangerouslySetInnerHTML={{
+                      __html: property.description.replace(/\n/g, '<br>'),
+                    }}
                   />
                 </div>
               )}
@@ -412,10 +410,12 @@ export default function PropertyDetailsPage() {
                       <Input
                         id="name"
                         value={inquiryForm.name}
-                        onChange={(e) => setInquiryForm(prev => ({
-                          ...prev,
-                          name: e.target.value
-                        }))}
+                        onChange={(e) =>
+                          setInquiryForm((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         placeholder="Your full name"
                         required
                       />
@@ -427,10 +427,12 @@ export default function PropertyDetailsPage() {
                         id="email"
                         type="email"
                         value={inquiryForm.email}
-                        onChange={(e) => setInquiryForm(prev => ({
-                          ...prev,
-                          email: e.target.value
-                        }))}
+                        onChange={(e) =>
+                          setInquiryForm((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
                         placeholder="your@email.com"
                         required
                       />
@@ -442,10 +444,12 @@ export default function PropertyDetailsPage() {
                         id="phone"
                         type="tel"
                         value={inquiryForm.phone}
-                        onChange={(e) => setInquiryForm(prev => ({
-                          ...prev,
-                          phone: e.target.value
-                        }))}
+                        onChange={(e) =>
+                          setInquiryForm((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }))
+                        }
                         placeholder="+30 xxx xxx xxxx"
                       />
                     </div>
@@ -455,21 +459,19 @@ export default function PropertyDetailsPage() {
                       <Textarea
                         id="message"
                         value={inquiryForm.message}
-                        onChange={(e) => setInquiryForm(prev => ({
-                          ...prev,
-                          message: e.target.value
-                        }))}
+                        onChange={(e) =>
+                          setInquiryForm((prev) => ({
+                            ...prev,
+                            message: e.target.value,
+                          }))
+                        }
                         placeholder="Tell us about your requirements..."
                         rows={4}
                       />
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={submittingInquiry}
-                    >
-                      {submittingInquiry ? "Submitting..." : "Send Inquiry"}
+                    <Button type="submit" className="w-full" disabled={submittingInquiry}>
+                      {submittingInquiry ? 'Submitting...' : 'Send Inquiry'}
                     </Button>
 
                     <div className="text-center">
@@ -504,5 +506,5 @@ export default function PropertyDetailsPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

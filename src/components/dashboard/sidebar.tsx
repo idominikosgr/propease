@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { UserButton } from '@clerk/nextjs'
+import { Button } from '@/components/ui/button'
 import {
   Home,
   Building,
@@ -14,63 +14,63 @@ import {
   Users,
   Shield,
   FileSpreadsheet,
-} from "lucide-react";
-import { cn } from "@/lib/cn";
-import { useUser } from "@clerk/nextjs";
+} from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { useUser } from '@clerk/nextjs'
 
 const navigation = [
   {
-    name: "Dashboard",
-    href: "/dashboard",
+    name: 'Dashboard',
+    href: '/dashboard',
     icon: Home,
   },
   {
-    name: "Properties",
-    href: "/dashboard/properties",
+    name: 'Properties',
+    href: '/dashboard/properties',
     icon: Building,
   },
   {
-    name: "Import",
-    href: "/dashboard/import",
+    name: 'Import',
+    href: '/dashboard/import',
     icon: FileSpreadsheet,
     agentOnly: true,
   },
   {
-    name: "Inquiries",
-    href: "/dashboard/inquiries",
+    name: 'Inquiries',
+    href: '/dashboard/inquiries',
     icon: MessageSquare,
   },
   {
-    name: "Analytics",
-    href: "/dashboard/analytics",
+    name: 'Analytics',
+    href: '/dashboard/analytics',
     icon: BarChart3,
   },
   {
-    name: "iList Sync",
-    href: "/dashboard/sync",
+    name: 'iList Sync',
+    href: '/dashboard/sync',
     icon: Database,
   },
   {
-    name: "Admin",
-    href: "/dashboard/admin",
+    name: 'Admin',
+    href: '/dashboard/admin',
     icon: Shield,
     adminOnly: true,
   },
   {
-    name: "Settings",
-    href: "/dashboard/settings",
+    name: 'Settings',
+    href: '/dashboard/settings',
     icon: Settings,
   },
-];
+]
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const { user } = useUser();
+  const pathname = usePathname()
+  const { user } = useUser()
 
   // Check user role from public metadata
-  const userRole = user?.publicMetadata?.role as string;
-  const isAdmin = userRole === "admin";
-  const isAgent = userRole === "agent" || isAdmin;
+  const userRole = user?.publicMetadata?.role as string
+  const isAdmin = userRole === 'admin'
+  const isAgent = userRole === 'agent' || isAdmin
 
   return (
     <div className="w-64 bg-card border-r flex flex-col h-full">
@@ -83,34 +83,29 @@ export function Sidebar() {
         {navigation.map((item) => {
           // Hide admin-only items from non-admins
           if (item.adminOnly && !isAdmin) {
-            return null;
+            return null
           }
 
           // Hide agent-only items from regular users
           if (item.agentOnly && !isAgent) {
-            return null;
+            return null
           }
 
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const Icon = item.icon
+          const isActive = pathname === item.href
 
           return (
             <Link key={item.name} href={item.href}>
               <Button
-                variant={isActive ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start",
-                  isActive && "bg-secondary",
-                )}
+                variant={isActive ? 'secondary' : 'ghost'}
+                className={cn('w-full justify-start', isActive && 'bg-secondary')}
               >
                 <Icon className="mr-3 h-4 w-4" />
                 {item.name}
-                {item.adminOnly && (
-                  <Shield className="ml-auto h-3 w-3 text-red-500" />
-                )}
+                {item.adminOnly && <Shield className="ml-auto h-3 w-3 text-red-500" />}
               </Button>
             </Link>
-          );
+          )
         })}
       </nav>
 
@@ -119,7 +114,7 @@ export function Sidebar() {
           <UserButton
             appearance={{
               elements: {
-                avatarBox: "w-8 h-8",
+                avatarBox: 'w-8 h-8',
               },
             }}
           />
@@ -130,5 +125,5 @@ export function Sidebar() {
         </div>
       </div>
     </div>
-  );
+  )
 }

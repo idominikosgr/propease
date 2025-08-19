@@ -1,9 +1,9 @@
-import { PERKS } from "@/constants";
-import { cn } from "@/lib";
-import Image from "next/image";
-import AnimationContainer from "./global/animation-container";
-import Wrapper from "./global/wrapper";
-import SectionBadge from "./ui/section-badge";
+import { PERKS } from '@/constants'
+import { cn } from '@/lib'
+import Image from 'next/image'
+import AnimationContainer from './global/animation-container'
+import Wrapper from './global/wrapper'
+import SectionBadge from './ui/section-badge'
 
 const Perks = () => {
   return (
@@ -46,12 +46,12 @@ const Perks = () => {
             <div
               key={index}
               className={cn(
-                "flex items-center p-2 md:p-16",
-                index % 2 === 0 ? "justify-end" : "justify-start",
+                'flex items-center p-2 md:p-16',
+                index % 2 === 0 ? 'justify-end' : 'justify-start'
               )}
             >
               <AnimationContainer
-                animation={index % 2 === 0 ? "fadeRight" : "fadeLeft"}
+                animation={index % 2 === 0 ? 'fadeRight' : 'fadeLeft'}
                 delay={0.2 * (index + 1)}
               >
                 <div className="flex flex-col items-center text-center gap-4">
@@ -65,9 +65,7 @@ const Perks = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg md:text-xl font-medium">
-                      {perk.title}
-                    </h3>
+                    <h3 className="text-lg md:text-xl font-medium">{perk.title}</h3>
                     <p className="text-xs md:text-sm text-muted-foreground max-w-[250px]">
                       {perk.description}
                     </p>
@@ -79,7 +77,7 @@ const Perks = () => {
         </div>
       </div>
     </Wrapper>
-  );
-};
+  )
+}
 
-export default Perks;
+export default Perks
